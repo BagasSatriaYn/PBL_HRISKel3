@@ -1,8 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\LetterFormatController;
-use App\Http\Controllers\Api\LetterController;
+use App\Http\Controllers\AuthController;
 
-Route::apiResource('letter-formats', LetterFormatController::class);
-Route::apiResource('letters', LetterController::class);
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);

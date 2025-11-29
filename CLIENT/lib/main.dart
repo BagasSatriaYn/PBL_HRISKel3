@@ -12,10 +12,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
+
+      // ✅ Tetap pakai router tim
       routerConfig: AppRoutes.router,
+
+      // ✅ Theme dari kode pertamamu tetap dipakai
       theme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: Colors.blue, // Primary biru
+        colorSchemeSeed: Colors.blue,
       ),
     );
   }
