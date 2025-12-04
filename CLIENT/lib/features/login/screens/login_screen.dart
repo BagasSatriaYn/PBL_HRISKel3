@@ -17,7 +17,7 @@ class _LoginPageState extends State<LoginPage> {
 
   bool loading = false;
   String? errorMessage;
-  
+
   // --- UI State Variables (Tambahan untuk tampilan) ---
   final _formKey = GlobalKey<FormState>();
   bool _isPasswordVisible = false;
@@ -102,24 +102,25 @@ class _LoginPageState extends State<LoginPage> {
                         TextFormField(
                           controller: passwordController,
                           obscureText: !_isPasswordVisible,
-                          decoration: _inputDecoration(
-                            hint: "Password",
-                            icon: Icons.lock_outline,
-                          ).copyWith(
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _isPasswordVisible
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
-                                color: Colors.grey,
+                          decoration:
+                              _inputDecoration(
+                                hint: "Password",
+                                icon: Icons.lock_outline,
+                              ).copyWith(
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _isPasswordVisible
+                                        ? Icons.visibility
+                                        : Icons.visibility_off,
+                                    color: Colors.grey,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _isPasswordVisible = !_isPasswordVisible;
+                                    });
+                                  },
+                                ),
                               ),
-                              onPressed: () {
-                                setState(() {
-                                  _isPasswordVisible = !_isPasswordVisible;
-                                });
-                              },
-                            ),
-                          ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Password tidak boleh kosong';
@@ -127,7 +128,7 @@ class _LoginPageState extends State<LoginPage> {
                             return null;
                           },
                         ),
-                        
+
                         // Menampilkan Error Message (jika ada)
                         if (errorMessage != null) ...[
                           const SizedBox(height: 16),
@@ -141,12 +142,19 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.error_outline, color: Colors.red, size: 20),
+                                Icon(
+                                  Icons.error_outline,
+                                  color: Colors.red,
+                                  size: 20,
+                                ),
                                 SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
                                     errorMessage!,
-                                    style: TextStyle(color: Colors.red.shade800, fontSize: 13),
+                                    style: TextStyle(
+                                      color: Colors.red.shade800,
+                                      fontSize: 13,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -154,7 +162,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ],
 
-                                                Align(
+                        Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
                             onPressed: () {
@@ -174,65 +182,72 @@ class _LoginPageState extends State<LoginPage> {
                           width: double.infinity,
                           height: 50,
                           child: ElevatedButton(
-                            onPressed: loading ? null : () async {
-                              // 1. Validasi Form UI dulu
-                              if (_formKey.currentState!.validate()) {
-                                setState(() {
-                                  loading = true;
-                                  errorMessage = null;
-                                });
+                            onPressed: loading
+                                ? null
+                                : () async {
+                                    // 1. Validasi Form UI dulu
+                                    if (_formKey.currentState!.validate()) {
+                                      setState(() {
+                                        loading = true;
+                                        errorMessage = null;
+                                      });
 
-                                try {
-                                  // 2. Panggil Logic Login Anda
-                                  final user = await authService.login(
-                                    emailController.text,
-                                    passwordController.text,
-                                  );
+                                      try {
+                                        // 2. Panggil Logic Login Anda
+                                        final user = await authService.login( 
+                                          emailController.text,
+                                          passwordController.text,
+                                        );
 
-                                  if (!mounted) return;
+                                        if (!mounted) return;
 
-                                  // 3. Routing Logic (GoRouter)
-                                  if (user!.role == 'admin') {
-                                    context.go('/admin-dashboard');
-                                  } else {
-                                    context.go('/employee_dashboard_screen.dart');
-                                  }
-                                } catch (e) {
-                                  // Handle Error
-                                  setState(() {
-                                    errorMessage = e.toString();
-                                  });
-                                } finally {
-                                  if (mounted) {
-                                    setState(() {
-                                      loading = false;
-                                    });
-                                  }
-                                }
-                              }
-                            },
+                                        // 3. Routing Logic (GoRouter)
+                                        if (user!.role == 'admin') {
+                                          context.go('/admin-dashboard');
+                                        } else {
+                                          context.go('/employee-dashboard');
+                                        }
+                                      } catch (e) {
+                                        // Handle Error
+                                        setState(() {
+                                          errorMessage = e.toString();
+                                        });
+                                      } finally {
+                                        if (mounted) {
+                                          setState(() {
+                                            loading = false;
+                                          });
+                                        }
+                                      }
+                                    }
+                                  },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF2575FC),
-                              disabledBackgroundColor: const Color(0xFF2575FC).withOpacity(0.6),
+                              disabledBackgroundColor: const Color(
+                                0xFF2575FC,
+                              ).withOpacity(0.6),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               elevation: 5,
                             ),
-                            child: loading 
-                              ? const SizedBox(
-                                  height: 20, 
-                                  width: 20, 
-                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                                ) 
-                              : const Text(
-                                  "LOGIN",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                            child: loading
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text(
+                                    "LOGIN",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
                           ),
                         ),
                       ],
@@ -248,7 +263,10 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   // --- Helper UI Style ---
-  InputDecoration _inputDecoration({required String hint, required IconData icon}) {
+  InputDecoration _inputDecoration({
+    required String hint,
+    required IconData icon,
+  }) {
     return InputDecoration(
       hintText: hint,
       prefixIcon: Icon(icon, color: Colors.grey),

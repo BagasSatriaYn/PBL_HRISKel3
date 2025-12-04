@@ -25,14 +25,10 @@ class AppRoutes {
   static final GoRouter router = GoRouter(
     initialLocation: '/', // landing page pertama
     routes: [
-
       // ======================
       // LANDING PAGE
       // ======================
-      GoRoute(
-        path: '/',
-        builder: (context, state) => const LandingScreen(),
-      ),
+      GoRoute(path: '/', builder: (context, state) => const LandingScreen()),
 
       // ======================
       // SPLASH
@@ -45,10 +41,7 @@ class AppRoutes {
       // ======================
       // AUTH
       // ======================
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginPage(),
-      ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
       GoRoute(
         path: '/forgot-password',
         builder: (context, state) => const ForgotPasswordPage(),
@@ -66,10 +59,9 @@ class AppRoutes {
       // DASHBOARD EMPLOYEE
       // ======================
       GoRoute(
-        path: '/employee-dashboard',
+        path: '/employee-dashboard', 
         builder: (context, state) => const EmployeeDashboard(),
       ),
-
       // ======================
       // EMPLOYEE FEATURES
       // ======================
@@ -89,10 +81,7 @@ class AppRoutes {
       // ======================
       // OTHER
       // ======================
-      GoRoute(
-        path: '/home',
-        builder: (context, state) => const HomeScreen(),
-      ),
+      GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
       GoRoute(
         path: '/superior',
         builder: (context, state) => const SuperiorScreen(),
