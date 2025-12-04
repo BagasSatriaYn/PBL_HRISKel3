@@ -195,7 +195,7 @@ class _LoginPageState extends State<LoginPage> {
                                   if (user!.role == 'admin') {
                                     context.go('/admin-dashboard');
                                   } else {
-                                    context.go('/employee-dashboard');
+                                    context.go('/employee_dashboard_screen.dart');
                                   }
                                 } catch (e) {
                                   // Handle Error

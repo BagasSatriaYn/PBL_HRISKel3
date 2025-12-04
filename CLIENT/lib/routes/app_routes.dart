@@ -1,24 +1,37 @@
 import 'package:go_router/go_router.dart';
 
+// Splash & Landing
 import '../features/splash/screens/splash_screen.dart';
-import '../features/home/screens/home_screen.dart';
+
+// Auth
 import '../features/login/screens/login_screen.dart';
 import '../features/login/screens/forgot_password_page.dart';
 
-import '../features/superior/screens/superior_screen.dart';
-
+// Dashboard
 import '../features/dashboard/screens/admin_dashboard_screen.dart';
 import '../features/dashboard/screens/employee_dashboard_screen.dart';
 
-// Tambahan halaman employee
+// Home & Superior
+import '../features/home/screens/home_screen.dart';
+import '../features/superior/screens/superior_screen.dart';
+
+// Employee Features
 import '../features/employee/screens/employee_salary_screen.dart';
 import '../features/employee/screens/employee_attendance_screen.dart';
 import '../features/employee/screens/employee_report_screen.dart';
 
 class AppRoutes {
-  static final router = GoRouter(
-    initialLocation: '/login',
+  static final GoRouter router = GoRouter(
+    initialLocation: '/',   // bisa diganti ke /login kalau mau
     routes: [
+
+      // ======================
+      // LANDING & SPLASH
+      // ======================
+      GoRoute(
+        path: '/splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
 
       // ======================
       // AUTH
