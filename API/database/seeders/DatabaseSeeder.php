@@ -11,6 +11,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UsersTableSeeder::class,
             EmployeesTableSeeder::class,
+            SalaryReportSeeder::class,
         ]);
     }
 }
