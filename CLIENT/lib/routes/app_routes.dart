@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 
 // Splash & Landing
 import '../features/splash/screens/splash_screen.dart';
+import '../features/dashboard/screens/landing_screen.dart';
 
 // Auth
 import '../features/login/screens/login_screen.dart';
@@ -22,11 +23,19 @@ import '../features/employee/screens/employee_report_screen.dart';
 
 class AppRoutes {
   static final GoRouter router = GoRouter(
-    initialLocation: '/',   // bisa diganti ke /login kalau mau
+    initialLocation: '/', // landing page pertama
     routes: [
 
       // ======================
-      // LANDING & SPLASH
+      // LANDING PAGE
+      // ======================
+      GoRoute(
+        path: '/',
+        builder: (context, state) => const LandingScreen(),
+      ),
+
+      // ======================
+      // SPLASH
       // ======================
       GoRoute(
         path: '/splash',
@@ -78,7 +87,7 @@ class AppRoutes {
       ),
 
       // ======================
-      // OTHER PAGES
+      // OTHER
       // ======================
       GoRoute(
         path: '/home',
