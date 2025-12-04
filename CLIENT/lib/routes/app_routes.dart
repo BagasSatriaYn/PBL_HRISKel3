@@ -20,6 +20,7 @@ import '../features/superior/screens/superior_screen.dart';
 import '../features/employee/screens/employee_salary_screen.dart';
 import '../features/employee/screens/employee_attendance_screen.dart';
 import '../features/employee/screens/employee_report_screen.dart';
+import '../features/employee/screens/employee_profile_screen.dart';
 
 class AppRoutes {
   static final GoRouter router = GoRouter(
@@ -77,6 +78,12 @@ class AppRoutes {
         path: '/employee/report',
         builder: (context, state) => const EmployeeReportScreen(),
       ),
+      GoRoute(
+        path: '/employee/profile',
+        builder: (context, state) => const ProfilePage(employeeId: 1),
+      ),
+      
+
 
       // ======================
       // OTHER
