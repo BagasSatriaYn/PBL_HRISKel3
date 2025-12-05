@@ -5,19 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Position extends Model
+class Department extends Model
 {
     use HasFactory;
 
-    protected $table = 'positions';
+    protected $table = 'departments';
 
     protected $fillable = [
         'name',
-        'rate_regular',
-        'rate_overtime',
+        'radius',
     ];
 
-    // Relation: a position has many employees
     public function employees()
     {
         return $this->hasMany(Employee::class);
