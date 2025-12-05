@@ -53,7 +53,7 @@ class AppRoutes {
       // ======================
       GoRoute(
         path: '/admin-dashboard',
-        builder: (context, state) => const AdminDashboard(),
+        builder: (context, state) => const AdminDashboardScreen(),
       ),
       
       // ======================

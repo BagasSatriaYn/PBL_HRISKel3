@@ -23,9 +23,13 @@ class AuthService {
     if (response.statusCode == 200 && data['success'] == true) {
       // Nyimpen Token & Nama neng HP
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', data['token']);
-      await prefs.setString('userName', data['user']['name']);
-      
+     final user = data['user'] ?? {};
+
+    await prefs.setString('token', data['token'] ?? '');
+    await prefs.setString('userName', user['name'] ?? '');
+    await prefs.setString('userEmail', user['email'] ?? '');
+    await prefs.setString('role', user['role'] ?? '');
+
       // Nyimpen role ugo (penting nggo bedakne Admin/Employee neng UI)
       if (data['user']['role'] != null) {
           await prefs.setString('role', data['user']['role']);

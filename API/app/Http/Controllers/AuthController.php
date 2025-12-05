@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator; // Tambahkan ini untuk validasi
 use Illuminate\Support\Facades\Auth;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use App\Models\Employee;
 
 class AuthController extends Controller
 {
@@ -49,17 +50,29 @@ class AuthController extends Controller
             ], 500);
         }
 
-        // 4. Ambil Data User yang sedang login
-           $user = Auth::user();
-           
-        // 5. Return Response JSON (Sesuai kebutuhan Frontend Flutter)
+       // 4. Ambil Data User
+        $user = Auth::user();
+
+        // 5. Ambil Data Employee (Join)
+        $employee = Employee::where('user_id', $user->id)->first();
+
+        $fullName = null;
+        if ($employee) {
+            $fullName = trim($employee->first_name.' '.$employee->last_name);
+        }
+
+        // 6. Return response yg sudah digabung
         return response()->json([
             'success' => true,
             'message' => 'Login berhasil',
             'token' => $token,
-            'user' => $user
+            'user' => [
+                'id'        => $user->id,
+                'email'     => $user->email,
+                'is_admin'  => $user->is_admin,
+                'full_name' => $fullName,
+            ]
         ], 200);
-    }
 
     // --- RESET PASSWORD (PERINGATAN: INI VERSI SEDERHANA/DEV) ---
     public function resetPassword(Request $request)
