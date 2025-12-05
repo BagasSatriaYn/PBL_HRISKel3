@@ -32,7 +32,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               Color(0xFF2C4058),
             ],
           ),
-        ),
+        ),// Tutup BoxDecoration
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
