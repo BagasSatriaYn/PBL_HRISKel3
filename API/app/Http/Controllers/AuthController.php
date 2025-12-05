@@ -8,13 +8,14 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
+   public function login(Request $request)
 {
     $request->validate([
         'email' => 'required|email',
         'password' => 'required'
     ]);
 
+    // GANTI BAGIAN INI
     $user = User::where('email', $request->email)->first();
 
     if (!$user || !Hash::check($request->password, $user->password)) {
@@ -23,19 +24,16 @@ class AuthController extends Controller
         ], 401);
     }
 
-    // 🔥 BUAT TOKEN SANCTUM
     $token = $user->createToken('mobile-token')->plainTextToken;
 
     return response()->json([
         'message' => 'Login berhasil',
         'token' => $token,
-        'user' => [
-            'id' => $user->id,
-            'email' => $user->email,
-            'role' => $user->is_admin ? 'admin' : 'employee'
-        ]
+        'user' => $user
     ], 200);
 }
+
+
     public function logout(Request $request)
 {
     $request->user()->currentAccessToken()->delete();
@@ -44,6 +42,4 @@ class AuthController extends Controller
         'message' => 'Logout berhasil'
     ]);
 }
-
-
 }
