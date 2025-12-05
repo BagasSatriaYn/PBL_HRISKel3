@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../services/auth.service.dart';
+// import 'package:shared_preferences/shared_preferences.dart'; // TIDAK PERLU DI SINI LAGI
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -10,7 +11,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // --- Logic Variables (Dari kode Anda) ---
+  // --- Logic Variables ---
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final AuthService authService = AuthService();
@@ -18,7 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   bool loading = false;
   String? errorMessage;
 
-  // --- UI State Variables (Tambahan untuk tampilan) ---
+  // --- UI State Variables ---
   final _formKey = GlobalKey<FormState>();
   bool _isPasswordVisible = false;
 
@@ -60,6 +61,7 @@ class _LoginPageState extends State<LoginPage> {
                     color: Colors.white,
                     letterSpacing: 1.5,
                   ),
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 40),
 
@@ -102,25 +104,24 @@ class _LoginPageState extends State<LoginPage> {
                         TextFormField(
                           controller: passwordController,
                           obscureText: !_isPasswordVisible,
-                          decoration:
-                              _inputDecoration(
-                                hint: "Password",
-                                icon: Icons.lock_outline,
-                              ).copyWith(
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _isPasswordVisible
-                                        ? Icons.visibility
-                                        : Icons.visibility_off,
-                                    color: Colors.grey,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _isPasswordVisible = !_isPasswordVisible;
-                                    });
-                                  },
-                                ),
+                          decoration: _inputDecoration(
+                            hint: "Password",
+                            icon: Icons.lock_outline,
+                          ).copyWith(
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isPasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                                color: Colors.grey,
                               ),
+                              onPressed: () {
+                                setState(() {
+                                  _isPasswordVisible = !_isPasswordVisible;
+                                });
+                              },
+                            ),
+                          ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Password tidak boleh kosong';
@@ -142,12 +143,12 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             child: Row(
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.error_outline,
                                   color: Colors.red,
                                   size: 20,
                                 ),
-                                SizedBox(width: 10),
+                                const SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
                                     errorMessage!,
@@ -193,20 +194,31 @@ class _LoginPageState extends State<LoginPage> {
                                       });
 
                                       try {
-                                        // 2. Panggil Logic Login Anda
-                                        final user = await authService.login( 
+                                        // 2. Panggil Logic Login
+                                        // Variabel kita beri nama 'response' karena isinya Map dari JSON
+                                        final response = await authService.login(
                                           emailController.text,
                                           passwordController.text,
                                         );
 
                                         if (!mounted) return;
 
+                                        // CATATAN: Kita TIDAK PERLU simpan SharedPreferences di sini lagi
+                                        // karena sudah dilakukan di dalam 'authService.login' (lihat file sebelumnya).
+                                        // Jadi UI tetap bersih.
+
                                         // 3. Routing Logic (GoRouter)
-                                        if (user!.role == 'admin') {
-                                          context.go('/admin-dashboard');
-                                        } else {
-                                          context.go('/employee-dashboard');
-                                        }
+                                        // Ambil role dari response backend
+                                     
+                                      final user = response['user'];
+                                      final isAdmin = user['is_admin'];
+
+                                      if (isAdmin == 1) {
+                                        context.go('/admin-dashboard');
+                                      } else {
+                                        context.go('/employee-dashboard');
+                                      }
+
                                       } catch (e) {
                                         // Handle Error
                                         setState(() {

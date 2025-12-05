@@ -35,9 +35,15 @@ return [
     |
     */
 
-    'guards' => [
+   'guards' => [
         'web' => [
             'driver' => 'session',
+            'provider' => 'users',
+        ],
+
+        // --- TAMBAHKE BAGIAN IKI (Ojo lali koma neng duwure) ---
+        'api' => [
+            'driver' => 'jwt',   // <--- Kuncine neng kene (jwt)
             'provider' => 'users',
         ],
     ],

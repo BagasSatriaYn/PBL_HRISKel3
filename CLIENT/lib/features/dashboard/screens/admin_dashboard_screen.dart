@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'sidebar_employee.dart';
 
 void main() {
@@ -23,16 +24,39 @@ class AdminDashboard extends StatelessWidget {
   }
 }
 
-class DashboardPage extends StatelessWidget {
+// ====================== DASHBOARD ====================== //
+
+class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
+
+  @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage> {
+  // --- INI BAGIAN SING DIKONGKON CHATGPT (Wis tak lebokne kene) ---
+  String? userName; // Variabel nggo nampung nama
+  String adminRole = "HR Admin";
+
+  @override
+  void initState() {
+    super.initState();
+    loadUserName(); // Manggil fungsi load pas aplikasi dibuka
+  }
+
+  void loadUserName() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userName = prefs.getString('userName');
+    });
+  }
+  // -------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
 
-    // Data contoh (kosongkan / bind dengan backend sesuai kebutuhan)
-    final String adminName = 'Nama Admin';
-    final String adminRole = 'HR Admin';
+    // Data Dummy
     final String totalEmployees = '124';
     final String pendingLeaves = '8';
     final String pendingApprovals = '6';
@@ -42,7 +66,7 @@ class DashboardPage extends StatelessWidget {
     final List<ActivityData> activityList = const [];
 
     return Scaffold(
-      drawer: const AppSidebar(), // tetap pakai sidebar yang ada
+      drawer: const AppSidebar(),
       appBar: AppBar(
         backgroundColor: primary,
         foregroundColor: Colors.white,
@@ -63,12 +87,13 @@ class DashboardPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header Sapaan (Tak ganti nggawe userName juga)
             Text(
-              'Selamat Datang, Admin!',
+              'Selamat Datang, ${userName ?? "Admin"}!', 
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: primary,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: primary,
+              ),
             ),
             const SizedBox(height: 6),
             Text(
@@ -77,7 +102,7 @@ class DashboardPage extends StatelessWidget {
             ),
             const SizedBox(height: 18),
 
-            // ADMIN OVERVIEW CARD (menggantikan profile employee)
+            // PROFILE CARD
             Card(
               elevation: 3,
               shape: RoundedRectangleBorder(
@@ -99,8 +124,9 @@ class DashboardPage extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // --- IKI NAMPILKE USERNAME SING WIS DILOAD ---
                           Text(
-                            adminName.isEmpty ? '-' : adminName,
+                            userName ?? "Loading...", // Nek durung ke-load, tulisan e Loading
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -108,19 +134,13 @@ class DashboardPage extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Text(
-                            adminRole.isEmpty ? '-' : adminRole,
-                            style: TextStyle(color: primary.withOpacity(0.75)),
-                          ),
+                          Text(adminRole, style: TextStyle(color: primary.withOpacity(0.75))),
                           const SizedBox(height: 8),
                           Row(
                             children: [
                               Icon(Icons.circle, size: 12, color: Colors.blueAccent),
                               const SizedBox(width: 6),
-                              Text(
-                                'Panel Admin',
-                                style: const TextStyle(color: Colors.black87),
-                              ),
+                              const Text('Panel Admin', style: TextStyle(color: Colors.black87)),
                             ],
                           ),
                         ],
@@ -200,7 +220,7 @@ class DashboardPage extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // RINGKASAN ABSENSI / METRIK
+            // RINGKASAN METRIK
             Card(
               elevation: 3,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -244,66 +264,7 @@ class DashboardPage extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // CHART / STATISTICS PLACEHOLDER
-            Text(
-              'Statistik & Tren',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: primary,
-                  ),
-            ),
-            const SizedBox(height: 8),
-
-            Container(
-              height: 160,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: primary.withOpacity(0.06)),
-              ),
-              child: const Center(
-                child: Text('Chart Placeholder (integrasikan chart library seperti fl_chart)', style: TextStyle(color: Colors.grey)),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // PENGUMUMAN (ADMIN CAN MANAGE)
-            Text(
-              'Pengumuman & Broadcast',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: primary,
-                  ),
-            ),
-            const SizedBox(height: 8),
-
-            Card(
-              elevation: 3,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  children: [
-                    const Text('Tidak ada pengumuman saat ini.', style: TextStyle(color: Colors.grey)),
-                    const SizedBox(height: 10),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: ElevatedButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.campaign_outlined),
-                        label: const Text('Buat Pengumuman'),
-                        style: ElevatedButton.styleFrom(backgroundColor: primary),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // QUICK ACTIONS — ADMIN FEATURES
+            // QUICK ACTIONS
             Text(
               'Menu Admin Cepat',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -333,7 +294,7 @@ class DashboardPage extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // AKTIVITAS SISTEM / RIWAYAT
+            // AKTIVITAS SISTEM
             Text(
               'Riwayat Aktivitas Sistem',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Jangan lupa import ini
 import 'sidebar_employee.dart';
+import '../models/user_model.dart';
 
 void main() {
   runApp(const EmployeeDashboard());
@@ -23,25 +25,51 @@ class EmployeeDashboard extends StatelessWidget {
   }
 }
 
-class DashboardPage extends StatelessWidget {
+// ====================== DASHBOARD PAGE (STATEFUL) ====================== //
+
+class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
+
+  @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage> {
+  // --- VARIABEL UTAMA ---
+  String? userName; 
+  String userRole = "Karyawan"; // Default role
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  // Fungsi load data dari HP
+  Future<void> _loadUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userName = prefs.getString('userName');
+      // Jika mau load role juga bisa: 
+      // userRole = prefs.getString('role') ?? "Karyawan";
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
 
-    // Semua data sudah dikosongkan.
-    final String employeeName = '';
-    final String employeePosition = '';
-    final String statusToday = '';
-    final String masuk = '';
-    final String pulang = '';
-    final String hadirMonth = '';
-    final String telatMonth = '';
-    final String izinMonth = '';
-    final String lemburMonth = '';
-    final String gajiMonth = '';
-    final String gajiStatus = '';
+    // Placeholder data lainnya (bisa disambung backend nanti)
+    final String employeePosition = 'Staff IT'; // Contoh isi jabatan
+    final String statusToday = 'Hadir';
+    final String masuk = '07:55';
+    final String pulang = '-';
+    final String hadirMonth = '18';
+    final String telatMonth = '1';
+    final String izinMonth = '0';
+    final String lemburMonth = '2';
+    final String gajiMonth = 'Rp 4.500.000';
+    final String gajiStatus = 'Dibayar';
     final List<ActivityData> activityList = const [];
 
     return Scaffold(
@@ -66,8 +94,9 @@ class DashboardPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Sapaan Header
             Text(
-              'Selamat Datang!',
+              'Selamat Datang, ${userName ?? "Karyawan"}!',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: primary,
@@ -102,8 +131,9 @@ class DashboardPage extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // NAMA USER DARI SHARED PREFERENCES
                           Text(
-                            employeeName.isEmpty ? '-' : employeeName,
+                            userName ?? "Loading...",
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,

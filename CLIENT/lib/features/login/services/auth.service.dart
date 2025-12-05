@@ -1,34 +1,44 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart'; // <--- PENTING: IKI KUDU ENEK
 import '../models/user_model.dart';
 import '../../../utils/api.dart';
 
 class AuthService {
   final String baseUrl = Api.baseUrl;
 
-  // ✅ INI WAJIB ADA
-  Future<User?> login(String email, String password) async {
-    final url = Uri.parse('$baseUrl/login');
-
+  // Ganti return type dadi Map ben UI iso nangkep token e ugo (opsional, tapi luwih fleksibel)
+  // Utawa tetep User? koyo kodinganmu sakdurunge yo rapopo, tapi pastike UI ne menyesuaikan.
+  Future<Map<String, dynamic>> login(String email, String password) async {
     final response = await http.post(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "email": email,
-        "password": password,
-      }),
+      Uri.parse('$baseUrl/login'),
+      body: {
+        'email': email,
+        'password': password,
+      },
     );
 
     final data = jsonDecode(response.body);
 
-    if (response.statusCode == 200) {
-      return User.fromJson(data['user']);
+    if (response.statusCode == 200 && data['success'] == true) {
+      // Nyimpen Token & Nama neng HP
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', data['token']);
+      await prefs.setString('userName', data['user']['name']);
+      
+      // Nyimpen role ugo (penting nggo bedakne Admin/Employee neng UI)
+      if (data['user']['role'] != null) {
+          await prefs.setString('role', data['user']['role']);
+      }
+
+      // Mbalekne data utuh ben UI iso nggawe logic redirect
+      return data; 
     } else {
-      throw Exception(data['message'] ?? 'Login gagal');
+      throw data['message'];
     }
   }
 
-  // ✅ RESET PASSWORD YANG TADI
+  // ✅ RESET PASSWORD
   Future<void> resetPassword(String email, String password) async {
     final url = Uri.parse('$baseUrl/reset-password');
 
