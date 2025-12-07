@@ -58,7 +58,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                   const SizedBox(height: 40),
 
-                  // CARD PUTIH
+                  // Card Putih
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
@@ -121,8 +121,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                         newPasswordController.text.isEmpty) {
                                       setState(() {
                                         loading = false;
-                                        errorMessage =
-                                            "Email dan password tidak boleh kosong.";
+                                        errorMessage = "Email dan password tidak boleh kosong.";
                                       });
                                       return;
                                     }
@@ -137,11 +136,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                                       context.go('/login');
 
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
+                                      ScaffoldMessenger.of(context).showSnackBar(
                                         const SnackBar(
-                                          content: Text(
-                                              "Password berhasil diubah"),
+                                          content: Text("Password berhasil diubah"),
                                         ),
                                       );
                                     } catch (e) {
@@ -195,8 +192,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       prefixIcon: Icon(icon, color: Colors.grey),
       filled: true,
       fillColor: Colors.grey.shade100,
-      contentPadding:
-          const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,

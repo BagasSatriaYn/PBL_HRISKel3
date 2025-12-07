@@ -25,7 +25,6 @@ class _LoginPageState extends State<LoginPage> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -58,7 +57,6 @@ class _LoginPageState extends State<LoginPage> {
                     letterSpacing: 1.5,
                   ),
                 ),
-
                 const SizedBox(height: 40),
 
                 Container(
@@ -70,7 +68,7 @@ class _LoginPageState extends State<LoginPage> {
                       BoxShadow(
                         color: Color(0xFF4ECDC4).withOpacity(0.3),
                         blurRadius: 20,
-                        offset: const Offset(0, 10),
+                        offset: Offset(0, 10),
                       ),
                     ],
                   ),
@@ -79,6 +77,7 @@ class _LoginPageState extends State<LoginPage> {
                     key: _formKey,
                     child: Column(
                       children: [
+                        // EMAIL
                         TextFormField(
                           controller: emailController,
                           decoration: _inputDecoration(
@@ -86,13 +85,14 @@ class _LoginPageState extends State<LoginPage> {
                             icon: Icons.email_outlined,
                           ),
                           validator: (value) =>
-                              value == null || value.isEmpty
+                              (value == null || value.isEmpty)
                                   ? "Email tidak boleh kosong"
                                   : null,
                         ),
 
                         const SizedBox(height: 20),
 
+                        // PASSWORD
                         TextFormField(
                           controller: passwordController,
                           obscureText: !_isPasswordVisible,
@@ -112,11 +112,12 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                           validator: (value) =>
-                              value == null || value.isEmpty
+                              (value == null || value.isEmpty)
                                   ? "Password tidak boleh kosong"
                                   : null,
                         ),
 
+                        // ERROR MESSAGE
                         if (errorMessage != null) ...[
                           const SizedBox(height: 16),
                           Container(
@@ -157,6 +158,7 @@ class _LoginPageState extends State<LoginPage> {
 
                         const SizedBox(height: 30),
 
+                        // LOGIN BUTTON
                         SizedBox(
                           width: double.infinity,
                           height: 52,
@@ -169,6 +171,8 @@ class _LoginPageState extends State<LoginPage> {
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               elevation: 8,
+                              shadowColor:
+                                  const Color(0xFF4ECDC4).withOpacity(0.4),
                             ),
                             child: loading
                                 ? const SizedBox(
@@ -200,7 +204,9 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  /// 🔐 HANDLE LOGIN
+  // ==========================
+  //        HANDLE LOGIN
+  // ==========================
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -222,16 +228,17 @@ class _LoginPageState extends State<LoginPage> {
       } else {
         context.go('/employee-dashboard');
       }
+
     } catch (e) {
-      setState(() {
-        errorMessage = e.toString();
-      });
+      setState(() => errorMessage = e.toString());
     } finally {
-      setState(() => loading = false);
+      if (mounted) setState(() => loading = false);
     }
   }
 
-  /// 🎨 INPUT FIELD DESIGN
+  // ==========================
+  //     INPUT STYLE
+  // ==========================
   InputDecoration _inputDecoration({
     required String hint,
     required IconData icon,

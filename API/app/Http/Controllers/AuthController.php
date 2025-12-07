@@ -112,11 +112,10 @@ class AuthController extends Controller
     }
 
     // ===========================================
-    // LOGOUT (diambil dari origin/main)
+    // LOGOUT (JWT)
     // ===========================================
     public function logout(Request $request)
     {
-        // Logout untuk JWT: invalidate token
         try {
             JWTAuth::invalidate(JWTAuth::getToken());
 
