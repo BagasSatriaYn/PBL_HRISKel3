@@ -13,44 +13,68 @@ use App\Models\Absensi;
 |--------------------------------------------------------------------------
 */
 
-// ===========================================
-// AUTH ROUTES (Tidak perlu JWT)
-// ===========================================
+/*
+|--------------------------------------------------------------------------
+| AUTH ROUTES (JWT)
+|--------------------------------------------------------------------------
+*/
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
-});
-// routes/api.php
 
+    // Tambahkan logout untuk melengkapi versi origin/main
+    Route::post('/logout', [AuthController::class, 'logout']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| PROTECTED ROUTES (JWT auth:api)
+|--------------------------------------------------------------------------
+*/
 Route::prefix('employee')->middleware('auth:api')->group(function () {
+
+    // Dashboard & Attendance
     Route::get('/dashboard/summary', [EmployeeDashboardController::class, 'getDashboardSummary']);
     Route::get('/dashboard/weekly-attendance', [EmployeeDashboardController::class, 'getWeeklyAttendance']);
     Route::get('/attendance/history', [EmployeeDashboardController::class, 'getAttendanceHistory']);
     Route::get('/overtime/history', [EmployeeDashboardController::class, 'getOvertimeHistory']);
+
+    // Profile
     Route::get('/profile', [EmployeeDashboardController::class, 'getProfile']);
     Route::get('/user/profile', [UserController::class, 'profile']);
-    
-    // ✅ TAMBAHKAN INI - Ambil absensi berdasarkan user yang login
+
+    // Absensi report berdasarkan user login
     Route::get('/absensi/report', function (Request $request) {
-        $user = $request->user(); // Ambil user dari token
-        
+        $user = $request->user();
+
         if (!$user->employee) {
             return response()->json(['message' => 'Employee data not found'], 404);
         }
-        
+
         $employeeId = $user->employee->id;
-        
+
         $data = Absensi::where('employee_id', $employeeId)
             ->orderBy('tanggal', 'desc')
             ->get();
-        
+
         return response()->json($data);
     });
 });
 
-// ===========================================
-// TEST ROUTE
-// ===========================================
+/*
+|--------------------------------------------------------------------------
+| ME endpoint (menggabungkan versi origin/main)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth:api')->get('/me', function (Request $request) {
+    return $request->user();
+});
+
+/*
+|--------------------------------------------------------------------------
+| TEST ROUTE
+|--------------------------------------------------------------------------
+*/
 Route::get('/test', function () {
     return response()->json([
         'success' => true,

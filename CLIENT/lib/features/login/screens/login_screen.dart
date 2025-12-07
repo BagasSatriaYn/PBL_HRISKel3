@@ -1,4 +1,3 @@
-// ui/login_page.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../services/auth.service.dart';
@@ -15,10 +14,10 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
   final AuthService authService = AuthService();
 
-  bool loading = false;
-  String? errorMessage;
   final _formKey = GlobalKey<FormState>();
+  bool loading = false;
   bool _isPasswordVisible = false;
+  String? errorMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -26,58 +25,169 @@ class _LoginPageState extends State<LoginPage> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
+
         decoration: const BoxDecoration(
-          gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [
-            Color(0xFF6A11CB),
-            Color(0xFF2575FC),
-          ]),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF3D5A80),
+              Color(0xFF2C4058),
+            ],
+          ),
         ),
+
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
+                const Icon(
+                  Icons.lock_person_rounded,
+                  size: 85,
+                  color: Colors.white,
+                ),
+                const SizedBox(height: 20),
+
+                const Text(
+                  "Login to HRIS System",
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+
                 const SizedBox(height: 40),
-                const Icon(Icons.lock_person_rounded, size: 80, color: Colors.white),
-                const SizedBox(height: 12),
-                const Text("Sign in to Your HRIS Dashboard", style: TextStyle(fontSize: 24, color: Colors.white)),
-                const SizedBox(height: 24),
+
                 Container(
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
+                  padding: const EdgeInsets.all(28),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0xFF4ECDC4).withOpacity(0.3),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+
                   child: Form(
                     key: _formKey,
                     child: Column(
                       children: [
                         TextFormField(
                           controller: emailController,
-                          decoration: _inputDecoration(hint: "Email Address", icon: Icons.email_outlined),
-                          validator: (v) => (v == null || v.isEmpty) ? 'Email tidak boleh kosong' : null,
+                          decoration: _inputDecoration(
+                            hint: "Email Address",
+                            icon: Icons.email_outlined,
+                          ),
+                          validator: (value) =>
+                              value == null || value.isEmpty
+                                  ? "Email tidak boleh kosong"
+                                  : null,
                         ),
-                        const SizedBox(height: 12),
+
+                        const SizedBox(height: 20),
+
                         TextFormField(
                           controller: passwordController,
                           obscureText: !_isPasswordVisible,
-                          decoration: _inputDecoration(hint: "Password", icon: Icons.lock_outline).copyWith(
+                          decoration: _inputDecoration(
+                            hint: "Password",
+                            icon: Icons.lock_outline,
+                          ).copyWith(
                             suffixIcon: IconButton(
-                              icon: Icon(_isPasswordVisible ? Icons.visibility : Icons.visibility_off),
-                              onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                              icon: Icon(
+                                _isPasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                                color: Colors.grey,
+                              ),
+                              onPressed: () =>
+                                  setState(() => _isPasswordVisible = !_isPasswordVisible),
                             ),
                           ),
-                          validator: (v) => (v == null || v.isEmpty) ? 'Password tidak boleh kosong' : null,
+                          validator: (value) =>
+                              value == null || value.isEmpty
+                                  ? "Password tidak boleh kosong"
+                                  : null,
                         ),
+
                         if (errorMessage != null) ...[
-                          const SizedBox(height: 12),
-                          Text(errorMessage!, style: const TextStyle(color: Colors.red)),
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.red.shade200),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.error_outline, color: Colors.red, size: 20),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    errorMessage!,
+                                    style: TextStyle(
+                                      color: Colors.red.shade800,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
-                        const SizedBox(height: 18),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: loading ? null : _doLogin,
-                            child: loading ? const CircularProgressIndicator(color: Colors.white) : const Text("LOGIN"),
+
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () => context.go('/forgot-password'),
+                            child: const Text(
+                              "Lupa Password?",
+                              style: TextStyle(color: Color(0xFF4ECDC4)),
+                            ),
                           ),
                         ),
+
+                        const SizedBox(height: 30),
+
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: ElevatedButton(
+                            onPressed: loading ? null : _handleLogin,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF4ECDC4),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              elevation: 8,
+                            ),
+                            child: loading
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text(
+                                    "LOGIN",
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                          ),
+                        )
                       ],
                     ),
                   ),
@@ -90,29 +200,26 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  InputDecoration _inputDecoration({required String hint, required IconData icon}) => InputDecoration(
-        hintText: hint,
-        prefixIcon: Icon(icon, color: Colors.grey),
-        filled: true,
-        fillColor: Colors.grey.shade100,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-      );
-
-  Future<void> _doLogin() async {
+  /// 🔐 HANDLE LOGIN
+  Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
+
     setState(() {
       loading = true;
       errorMessage = null;
     });
 
     try {
-      final User user = await authService.login(emailController.text.trim(), passwordController.text);
-      // user.role is int: 1 = admin, 0 = employee
-      if (user.role == 1) {
-        if (!mounted) return;
+      final User? user = await authService.login(
+        emailController.text.trim(),
+        passwordController.text.trim(),
+      );
+
+      if (!mounted) return;
+
+      if (user!.role == 1) {
         context.go('/admin-dashboard');
       } else {
-        if (!mounted) return;
         context.go('/employee-dashboard');
       }
     } catch (e) {
@@ -120,7 +227,29 @@ class _LoginPageState extends State<LoginPage> {
         errorMessage = e.toString();
       });
     } finally {
-      if (mounted) setState(() => loading = false);
+      setState(() => loading = false);
     }
+  }
+
+  /// 🎨 INPUT FIELD DESIGN
+  InputDecoration _inputDecoration({
+    required String hint,
+    required IconData icon,
+  }) {
+    return InputDecoration(
+      hintText: hint,
+      prefixIcon: Icon(icon, color: Colors.grey[600]),
+      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+      fillColor: Colors.grey.shade100,
+      filled: true,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+        borderSide: BorderSide(color: Color(0xFF4ECDC4), width: 2),
+      ),
+    );
   }
 }

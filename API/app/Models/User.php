@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements JWTSubject
 {
+    use HasApiTokens, HasFactory, Notifiable;
+
     protected $fillable = [
         'name',
         'email',
@@ -22,7 +24,10 @@ class User extends Authenticatable implements JWTSubject
         'remember_token',
     ];
 
-    // JWT methods
+    // ============================
+    // JWT METHODS
+    // ============================
+
     public function getJWTIdentifier()
     {
         return $this->getKey();
@@ -32,8 +37,13 @@ class User extends Authenticatable implements JWTSubject
     {
         return [];
     }
+
+    // ============================
+    // RELATION
+    // ============================
+
     public function employee()
     {
-        return $this->hasOne(Employee::class);
+        return $this->hasOne(Employee::class, 'user_id');
     }
 }
