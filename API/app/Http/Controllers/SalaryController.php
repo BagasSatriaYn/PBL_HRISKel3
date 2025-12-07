@@ -11,8 +11,9 @@ class SalaryController extends Controller
     public function getEmployeeSalary($employeeId, Request $request)
     {
         $month = $request->query('month', now()->month);
-        $year = $request->query('year', now()->year);
+        $year  = $request->query('year', now()->year);
 
+        // Ambil data employee + posisi
         $employee = DB::table('employees')
             ->join('positions', 'employees.position_id', '=', 'positions.id')
             ->where('employees.id', $employeeId)
@@ -32,9 +33,11 @@ class SalaryController extends Controller
             ], 404);
         }
 
+        // Range tanggal
         $startDate = Carbon::create($year, $month, 1)->startOfMonth();
         $endDate   = Carbon::create($year, $month, 1)->endOfMonth();
 
+        // Ambil total jam reguler & OT
         $attendance = DB::table('check_clocks')
             ->where('employee_id', $employeeId)
             ->whereBetween('date', [$startDate, $endDate])
@@ -44,30 +47,37 @@ class SalaryController extends Controller
             )
             ->first();
 
-        $totalReguler = $attendance->total_reguler ?? 0;
+        $totalReguler  = $attendance->total_reguler ?? 0;
         $totalOvertime = $attendance->total_overtime ?? 0;
 
-        $base  = $totalReguler * $employee->rate_reguler;
-        $overtime = $totalOvertime * $employee->rate_overtime;
+        // Hitung komponen salary
+        $baseSalary = $totalReguler * $employee->rate_reguler;
+        $overtime   = $totalOvertime * $employee->rate_overtime;
 
-        $bonus = $month == 12 ? 500000 : 0;
+        // Bonus akhir tahun
+        $bonus = ($month == 12) ? 500000 : 0;
+
+        // Potongan (izin, telat, tidak hadir, dll)
         $deduction = 200000;
 
-        $takeHomePay = $base + $overtime + $bonus - $deduction;
+        // THP
+        $netSalary = $baseSalary + $overtime + $bonus - $deduction;
 
         return response()->json([
-            'employeeId'   => $employee->id,
-            'name'         => $employee->first_name . ' ' . $employee->last_name,
-            'position'     => $employee->position,
-            'period'       => Carbon::create($year, $month, 1)->format('F Y'),
-            'baseSalary'   => $base,
-            'allowances'   => $overtime,
-            'bonus'        => $bonus,
-            'deductions'   => $deduction,
-            'takeHomePay'  => $takeHomePay,
-            'bankName'     => 'Mandiri',
-            'accountNumber'=> '123654789',
-            'accountHolder'=> $employee->first_name . ' ' . $employee->last_name,
+            'employeeId'    => $employee->id,
+            'name'          => $employee->first_name . ' ' . $employee->last_name,
+            'position'      => $employee->position,
+            'period'        => Carbon::create($year, $month, 1)->format('F Y'),
+
+            'baseSalary'    => $baseSalary,
+            'overtime'      => $overtime,
+            'bonus'         => $bonus,
+            'deductions'    => $deduction,
+            'netSalary'     => $netSalary,
+
+            'bankName'      => 'Mandiri',
+            'accountNumber' => '123654789',
+            'accountHolder' => $employee->first_name . ' ' . $employee->last_name,
         ]);
     }
 }

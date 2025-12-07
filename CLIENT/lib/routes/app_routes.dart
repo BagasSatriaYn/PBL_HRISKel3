@@ -61,7 +61,7 @@ class AppRoutes {
       // ======================
       GoRoute(
         path: '/employee-dashboard', 
-        builder: (context, state) => const EmployeeDashboard(),
+        builder: (context, state) => const EmployeeDashboardScreen(),
       ),
       // ======================
       // EMPLOYEE FEATURES

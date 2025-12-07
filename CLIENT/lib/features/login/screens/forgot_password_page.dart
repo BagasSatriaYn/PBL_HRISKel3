@@ -11,7 +11,7 @@ class ForgotPasswordPage extends StatefulWidget {
 
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  final newPasswordController = TextEditingController();
   final AuthService authService = AuthService();
 
   bool loading = false;
@@ -32,7 +32,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             const SizedBox(height: 16),
 
             TextField(
-              controller: passwordController,
+              controller: newPasswordController,
               obscuringCharacter: '*',
               obscureText: true,
               decoration: const InputDecoration(labelText: "Password Baru"),
@@ -41,7 +41,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             if (errorMessage != null)
               Padding(
                 padding: const EdgeInsets.only(top: 12),
-                child: Text(errorMessage!, style: const TextStyle(color: Colors.red)),
+                child: Text(
+                  errorMessage!,
+                  style: const TextStyle(color: Colors.red),
+                ),
               ),
 
             const SizedBox(height: 30),
@@ -49,34 +52,46 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: loading ? null : () async {
-                  setState(() {
-                    loading = true;
-                    errorMessage = null;
-                  });
+                onPressed: loading
+                    ? null
+                    : () async {
+                        setState(() {
+                          loading = true;
+                          errorMessage = null;
+                        });
 
-                  try {
-                    await authService.resetPassword(
-                      emailController.text,
-                      passwordController.text,
-                    );
+                        // VALIDASI BIAR GA NULL
+                        if (emailController.text.isEmpty ||
+                            newPasswordController.text.isEmpty) {
+                          setState(() {
+                            loading = false;
+                            errorMessage = "Email dan password tidak boleh kosong.";
+                          });
+                          return;
+                        }
 
-                    if (!mounted) return;
+                        try {
+                          await authService.resetPassword(
+                            emailController.text,
+                            newPasswordController.text,
+                          );
 
-                    // ✅ Kembali ke login setelah sukses
-                    context.go('/login');
+                          if (!mounted) return;
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Password berhasil diubah")),
-                    );
-                  } catch (e) {
-                    setState(() {
-                      errorMessage = e.toString();
-                    });
-                  } finally {
-                    setState(() => loading = false);
-                  }
-                },
+                          context.go('/login');
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text("Password berhasil diubah")),
+                          );
+                        } catch (e) {
+                          setState(() {
+                            errorMessage = e.toString();
+                          });
+                        } finally {
+                          setState(() => loading = false);
+                        }
+                      },
                 child: const Text("SIMPAN PASSWORD BARU"),
               ),
             )

@@ -33,13 +33,6 @@ class AppSidebar extends StatelessWidget {
             title: const Text('Gaji'),
             onTap: () => context.go('/employee/salary'),
           ),
-
-          ListTile(
-            leading: const Icon(Icons.access_time),
-            title: const Text('Absensi'),
-            onTap: () => context.go('/employee/attendance'),
-          ),
-
           ListTile(
             leading: const Icon(Icons.insert_chart),
             title: const Text('Report Absensi'),
