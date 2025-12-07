@@ -11,7 +11,7 @@ class ForgotPasswordPage extends StatefulWidget {
 
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  final newPasswordController = TextEditingController();
   final AuthService authService = AuthService();
 
   bool loading = false;
@@ -28,18 +28,17 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF3D5A80), // Warna sama dengan Landing Screen
+              Color(0xFF3D5A80),
               Color(0xFF2C4058),
             ],
           ),
-        ),// Tutup BoxDecoration
+        ),
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Column(
                 children: [
-                  // Icon
                   const Icon(
                     Icons.lock_reset_rounded,
                     size: 80,
@@ -86,7 +85,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         const SizedBox(height: 20),
 
                         TextField(
-                          controller: passwordController,
+                          controller: newPasswordController,
                           obscureText: true,
                           decoration: _inputDecoration(
                             hint: "Password Baru",
@@ -110,35 +109,46 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           width: double.infinity,
                           height: 50,
                           child: ElevatedButton(
-                            onPressed: loading ? null : () async {
-                              setState(() {
-                                loading = true;
-                                errorMessage = null;
-                              });
+                            onPressed: loading
+                                ? null
+                                : () async {
+                                    setState(() {
+                                      loading = true;
+                                      errorMessage = null;
+                                    });
 
-                              try {
-                                await authService.resetPassword(
-                                  emailController.text,
-                                  passwordController.text,
-                                );
+                                    if (emailController.text.isEmpty ||
+                                        newPasswordController.text.isEmpty) {
+                                      setState(() {
+                                        loading = false;
+                                        errorMessage = "Email dan password tidak boleh kosong.";
+                                      });
+                                      return;
+                                    }
 
-                                if (!mounted) return;
+                                    try {
+                                      await authService.resetPassword(
+                                        emailController.text,
+                                        newPasswordController.text,
+                                      );
 
-                                context.go('/login');
+                                      if (!mounted) return;
 
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text("Password berhasil diubah"),
-                                  ),
-                                );
-                              } catch (e) {
-                                setState(() {
-                                  errorMessage = e.toString();
-                                });
-                              } finally {
-                                setState(() => loading = false);
-                              }
-                            },
+                                      context.go('/login');
+
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text("Password berhasil diubah"),
+                                        ),
+                                      );
+                                    } catch (e) {
+                                      setState(() {
+                                        errorMessage = e.toString();
+                                      });
+                                    } finally {
+                                      setState(() => loading = false);
+                                    }
+                                  },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF4ECDC4),
                               foregroundColor: Colors.white,
@@ -149,7 +159,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                             ),
                             child: loading
                                 ? const CircularProgressIndicator(
-                                    color: Colors.white, strokeWidth: 2)
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  )
                                 : const Text(
                                     "SIMPAN PASSWORD BARU",
                                     style: TextStyle(
@@ -158,7 +170,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                     ),
                                   ),
                           ),
-                        )
+                        ),
                       ],
                     ),
                   ),

@@ -6,29 +6,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Employee extends Model
 {
-<<<<<<< HEAD
+    use HasFactory;
+
     protected $table = 'employees';
 
     protected $fillable = [
-=======
-    use HasFactory;
-
-    protected $table = 'employees'; // sesuaikan kalau nama tabel berbeda
-
-    protected $fillable = [
-        'id',
->>>>>>> ba274c782e3c735394d2afcd153dc18227fbff87
         'user_id',
         'position_id',
         'department_id',
         'first_name',
         'last_name',
         'gender',
-<<<<<<< HEAD
-        'address'
-    ];
-
-=======
         'address',
     ];
 
@@ -39,35 +27,36 @@ class Employee extends Model
     ];
 
     // ============================
-    // RELASI
+    // RELATIONS
     // ============================
 
-    // Employee -> User
->>>>>>> ba274c782e3c735394d2afcd153dc18227fbff87
+    // Employee → User
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-<<<<<<< HEAD
-=======
-    // Employee -> Position
->>>>>>> ba274c782e3c735394d2afcd153dc18227fbff87
+    // Employee → Position
     public function position()
     {
         return $this->belongsTo(Position::class);
     }
 
-<<<<<<< HEAD
-=======
-    // Employee -> Department
->>>>>>> ba274c782e3c735394d2afcd153dc18227fbff87
+    // Employee → Department
     public function department()
     {
-        return $this->belongsTo(Department::class);
+        return $this->belongsTo(Department::class, 'department_id');
     }
-<<<<<<< HEAD
+
+    // Employee → Absensi
+    public function absensi()
+    {
+        return $this->hasMany(Absensi::class);
+    }
+
+    // Employee → Salary Reports
+    public function salaryReports()
+    {
+        return $this->hasMany(SalaryReport::class);
+    }
 }
-=======
-}
->>>>>>> ba274c782e3c735394d2afcd153dc18227fbff87

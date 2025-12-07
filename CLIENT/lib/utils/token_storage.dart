@@ -1,18 +1,23 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TokenStorage {
+  static const _keyToken = 'token';
+
+  /// Simpan token
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('token', token);
+    await prefs.setString(_keyToken, token);
   }
 
+  /// Ambil token
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token');
+    return prefs.getString(_keyToken);
   }
 
-  static Future<void> clearToken() async {
+  /// Hapus token
+  static Future<void> removeToken() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('token');
+    await prefs.remove(_keyToken);
   }
 }

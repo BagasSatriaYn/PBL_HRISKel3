@@ -15,11 +15,14 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'] is int ? json['id'] : int.tryParse(json['id'].toString()) ?? 0,
+      id: json['id'] is int
+          ? json['id']
+          : int.tryParse(json['id'].toString()) ?? 0,
 
-      // ✅ SEMUA STRING DIPAKSA AMAN
-      email: json['email'] == null ? '' : json['email'].toString(),
-      role: json['role'] == null ? 'employee' : json['role'].toString(),
+      email: json['email']?.toString() ?? "",
+
+      // Ambil role langsung dari API (sudah disiapkan Laravel)
+      role: json['role']?.toString() ?? "employee",
 
       employee: json['employee'] != null
           ? Employee.fromJson(json['employee'])

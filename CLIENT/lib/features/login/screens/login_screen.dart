@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../services/auth.service.dart';
+import '../models/user_model.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
-
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
@@ -14,11 +14,10 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
   final AuthService authService = AuthService();
 
-  bool loading = false;
-  String? errorMessage;
-
   final _formKey = GlobalKey<FormState>();
+  bool loading = false;
   bool _isPasswordVisible = false;
+  String? errorMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -26,15 +25,13 @@ class _LoginPageState extends State<LoginPage> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-
-        /// 🎨 Background disamakan dengan LandingScreen
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF3D5A80), // warna landing screen
-              Color(0xFF2C4058), // warna landing screen
+              Color(0xFF3D5A80),
+              Color(0xFF2C4058),
             ],
           ),
         ),
@@ -43,7 +40,6 @@ class _LoginPageState extends State<LoginPage> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Icon(
                   Icons.lock_person_rounded,
@@ -61,7 +57,6 @@ class _LoginPageState extends State<LoginPage> {
                     letterSpacing: 1.5,
                   ),
                 ),
-
                 const SizedBox(height: 40),
 
                 Container(
@@ -69,13 +64,11 @@ class _LoginPageState extends State<LoginPage> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(22),
-
-                    /// shadow dibuat turquoise seperti Landing
                     boxShadow: [
                       BoxShadow(
                         color: Color(0xFF4ECDC4).withOpacity(0.3),
                         blurRadius: 20,
-                        offset: const Offset(0, 10),
+                        offset: Offset(0, 10),
                       ),
                     ],
                   ),
@@ -84,6 +77,7 @@ class _LoginPageState extends State<LoginPage> {
                     key: _formKey,
                     child: Column(
                       children: [
+                        // EMAIL
                         TextFormField(
                           controller: emailController,
                           decoration: _inputDecoration(
@@ -91,13 +85,14 @@ class _LoginPageState extends State<LoginPage> {
                             icon: Icons.email_outlined,
                           ),
                           validator: (value) =>
-                              value == null || value.isEmpty
+                              (value == null || value.isEmpty)
                                   ? "Email tidak boleh kosong"
                                   : null,
                         ),
 
                         const SizedBox(height: 20),
 
+                        // PASSWORD
                         TextFormField(
                           controller: passwordController,
                           obscureText: !_isPasswordVisible,
@@ -117,16 +112,16 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                           validator: (value) =>
-                              value == null || value.isEmpty
+                              (value == null || value.isEmpty)
                                   ? "Password tidak boleh kosong"
                                   : null,
                         ),
 
+                        // ERROR MESSAGE
                         if (errorMessage != null) ...[
                           const SizedBox(height: 16),
                           Container(
                             padding: const EdgeInsets.all(10),
-                            width: double.infinity,
                             decoration: BoxDecoration(
                               color: Colors.red.shade50,
                               borderRadius: BorderRadius.circular(8),
@@ -163,6 +158,7 @@ class _LoginPageState extends State<LoginPage> {
 
                         const SizedBox(height: 30),
 
+                        // LOGIN BUTTON
                         SizedBox(
                           width: double.infinity,
                           height: 52,
@@ -195,7 +191,7 @@ class _LoginPageState extends State<LoginPage> {
                                     ),
                                   ),
                           ),
-                        ),
+                        )
                       ],
                     ),
                   ),
@@ -207,8 +203,10 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
-// ==== HANDLE LOGIN ====
-  // ==== HANDLE LOGIN ====
+
+  // ==========================
+  //        HANDLE LOGIN
+  // ==========================
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -218,32 +216,29 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      final user = await authService.login(
-        emailController.text,
-        passwordController.text,
+      final User? user = await authService.login(
+        emailController.text.trim(),
+        passwordController.text.trim(),
       );
 
       if (!mounted) return;
 
-      if (user!.role == 'admin') {
+      if (user!.role == 1) {
         context.go('/admin-dashboard');
       } else {
         context.go('/employee-dashboard');
       }
+
     } catch (e) {
-      setState(() {
-        errorMessage = e.toString();
-      });
+      setState(() => errorMessage = e.toString());
     } finally {
-      if (mounted) {
-        setState(() {
-          loading = false;
-        });
-      }
+      if (mounted) setState(() => loading = false);
     }
   }
 
-  // ==== INPUT STYLE ====
+  // ==========================
+  //     INPUT STYLE
+  // ==========================
   InputDecoration _inputDecoration({
     required String hint,
     required IconData icon,
