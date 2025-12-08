@@ -115,20 +115,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   Text(adminEmail,
                       style: TextStyle(color: Colors.grey[600])),
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.person),
-                        label: const Text('Lihat Profil'),
-                      ),
-                      const SizedBox(width: 8),
-                      OutlinedButton(
-                        onPressed: logout,
-                        child: const Text('Logout'),
-                      ),
-                    ],
-                  )
                 ],
               ),
             )

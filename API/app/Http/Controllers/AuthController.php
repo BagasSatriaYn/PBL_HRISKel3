@@ -4,22 +4,23 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Employee;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator; // Tambahkan ini untuk validasi
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
-use App\Models\Employee;
 
 class AuthController extends Controller
 {
-    // --- LOGIN ---
+    // ===========================================
+    // LOGIN
+    // ===========================================
     public function login(Request $request)
     {
-        
-        // 1. Validasi Input
+        // 1. Validasi input
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
+            'email'    => 'required|email',
             'password' => 'required|string',
         ]);
 
@@ -27,16 +28,15 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Input tidak valid',
-                'errors' => $validator->errors()
+                'errors'  => $validator->errors()
             ], 422);
         }
 
-        // 2. Ambil Kredensial
+        // 2. Ambil kredensial
         $credentials = $request->only('email', 'password');
-     
 
         try {
-            // 3. Coba Login & Generate Token
+            // 3. Attempt login
             if (!$token = JWTAuth::attempt($credentials)) {
                 return response()->json([
                     'success' => false,
@@ -50,51 +50,52 @@ class AuthController extends Controller
             ], 500);
         }
 
-       // 4. Ambil Data User
+        // 4. Ambil user login
         $user = Auth::user();
 
-        // 5. Ambil Data Employee (Join)
+        // 5. Join ke tabel employees
         $employee = Employee::where('user_id', $user->id)->first();
 
-        $fullName = null;
+        $fullName = '';
         if ($employee) {
-            $fullName = trim($employee->first_name.' '.$employee->last_name);
+            $fullName = trim($employee->first_name . ' ' . $employee->last_name);
         }
 
-        // 6. Return response yg sudah digabung
+        // 6. Return response
         return response()->json([
             'success' => true,
             'message' => 'Login berhasil',
-            'token' => $token,
-            'user' => [
+            'token'   => $token,
+            'user'    => [
                 'id'        => $user->id,
                 'email'     => $user->email,
                 'is_admin'  => $user->is_admin,
                 'full_name' => $fullName,
             ]
         ], 200);
+    }
 
-    // --- RESET PASSWORD (PERINGATAN: INI VERSI SEDERHANA/DEV) ---
+
+    // ===========================================
+    // RESET PASSWORD
+    // ===========================================
     public function resetPassword(Request $request)
     {
-        // 1. Validasi
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|exists:users,email', // Pastikan email ada di tabel users
-            'password' => 'required|min:6|confirmed' // Gunakan 'confirmed' jika di frontend ada field 'confirm password'
+            'email'                 => 'required|email|exists:users,email',
+            'password'              => 'required|min:6|confirmed'
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validasi gagal',
-                'errors' => $validator->errors()
+                'errors'  => $validator->errors()
             ], 422);
         }
 
-        // 2. Cari User
         $user = User::where('email', $request->email)->first();
 
-        // (Pengecekan redundant karena sudah ada validasi 'exists', tapi untuk keamanan ganda boleh ada)
         if (!$user) {
             return response()->json([
                 'success' => false,
@@ -102,8 +103,6 @@ class AuthController extends Controller
             ], 404);
         }
 
-        // 3. Update Password
-        // Gunakan Hash::make agar konsisten
         $user->password = Hash::make($request->password);
         $user->save();
 
