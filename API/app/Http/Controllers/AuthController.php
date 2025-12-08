@@ -56,24 +56,31 @@ class AuthController extends Controller
         // 5. Cek relasi employee
         $employee = Employee::where('user_id', $user->id)->first();
 
+        $fullName = $employee
+            ? $employee->first_name . ' ' . $employee->last_name
+            : null;
+
         return response()->json([
             'success' => true,
             'message' => 'Login berhasil',
             'token'   => $token,
             'user'    => [
-                'id'        => $user->id,
-                'email'     => $user->email,
-                'role'      => $user->is_admin,
-                'employee'  => $employee ? [
-                    'id'          => $employee->id,
-                    'first_name'  => $employee->first_name,
-                    'last_name'   => $employee->last_name,
-                    'phone'       => $employee->phone,
-                    'address'     => $employee->address,
+                'id'    => $user->id,
+                'email' => $user->email,
+                'name'  => $fullName,
+                'role'  => $user->is_admin,
+                'employee' => $employee ? [
+                    'id'         => $employee->id,
+                    'first_name' => $employee->first_name,
+                    'last_name'  => $employee->last_name,
+                    'phone'      => $employee->phone,
+                    'address'    => $employee->address,
                 ] : null
             ]
         ]);
-    }
+    } 
+    // ✅ LOGIN METHOD CLOSED PROPERLY
+
 
     // ===========================================
     // RESET PASSWORD
@@ -81,8 +88,8 @@ class AuthController extends Controller
     public function resetPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email'                 => 'required|email|exists:users,email',
-            'password'              => 'required|min:6|confirmed'
+            'email'    => 'required|email|exists:users,email',
+            'password' => 'required|min:6|confirmed'
         ]);
 
         if ($validator->fails()) {
@@ -110,6 +117,7 @@ class AuthController extends Controller
             'message' => 'Password berhasil diubah'
         ], 200);
     }
+
 
     // ===========================================
     // LOGOUT (JWT)

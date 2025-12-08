@@ -63,6 +63,21 @@ Route::prefix('employee')->middleware('auth:api')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
+| ADMIN DASHBOARD ROUTES
+|--------------------------------------------------------------------------
+*/
+use App\Http\Controllers\AdminDashboardController;
+
+Route::prefix('admin')
+    ->middleware('auth:api')
+    ->group(function () {
+
+        Route::get('/dashboard/stats', [AdminDashboardController::class, 'stats']);
+
+});
+
+/*
+|--------------------------------------------------------------------------
 | ME endpoint (menggabungkan versi origin/main)
 |--------------------------------------------------------------------------
 */
