@@ -11,20 +11,20 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('departments', function (Blueprint $table) {
+        Schema::create('departements', function (Blueprint $table) {
             $table->id();
             $table->string('name', 100)->nullable();
             $table->string('radius', 50)->nullable();
+            $table->decimal('base_salary', 12, 2)->default(0);
+            $table->decimal('allowance_default', 12, 2)->default(0);
             $table->timestamps();
         });
     }
-
-
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('departments');
+        Schema::dropIfExists('departements');
     }
 };

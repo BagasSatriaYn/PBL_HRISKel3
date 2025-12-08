@@ -6,32 +6,41 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up()
     {
         Schema::create('employees', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('position_id')->nullable();
-            $table->unsignedBigInteger('department_id')->nullable();
-            $table->string('first_name', 100);
-            $table->string('last_name', 100);
-            $table->char('gender', 1);
-            $table->text('address')->nullable();
-            $table->timestamps();
 
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('position_id')->references('id')->on('positions')->onDelete('set null');
-            $table->foreign('department_i   d')->references('id')->on('departments')->onDelete('set null');
+            // Kolom yang dipakai di Seeder
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->string('first_name');
+            $table->string('last_name');
+            $table->enum('gender', ['M', 'F'])->nullable();
+            $table->string('address')->nullable();
+            
+            // Bank Information
+            $table->string('bank_name')->nullable();
+            $table->string('bank_account_number')->nullable();
+            $table->string('bank_account_holder')->nullable();
+
+            // Relasi departement
+            $table->unsignedBigInteger('departement_id')->nullable();
+            $table->foreign('departement_id')
+                ->references('id')
+                ->on('departements')
+                ->onDelete('set null');
+
+            // Relasi position
+            $table->unsignedBigInteger('position_id')->nullable();
+            $table->foreign('position_id')
+                ->references('id')
+                ->on('positions')
+                ->onDelete('set null');
+
+            $table->timestamps();
         });
     }
 
-
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('employees');

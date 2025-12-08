@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -9,10 +8,9 @@ class Employee extends Model
 {
     use HasFactory;
 
-    protected $table = 'employees'; // sesuaikan kalau nama tabel berbeda
+    protected $table = 'employees';
 
     protected $fillable = [
-        'id',
         'user_id',
         'position_id',
         'department_id',
@@ -29,24 +27,36 @@ class Employee extends Model
     ];
 
     // ============================
-    // RELASI
+    // RELATIONS
     // ============================
 
-    // Employee -> User
+    // Employee → User
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    // Employee -> Position
+    // Employee → Position
     public function position()
     {
         return $this->belongsTo(Position::class);
     }
 
-    // Employee -> Department
+    // Employee → Department
     public function department()
     {
-        return $this->belongsTo(Department::class);
+        return $this->belongsTo(Department::class, 'department_id');
+    }
+
+    // Employee → Absensi
+    public function absensi()
+    {
+        return $this->hasMany(Absensi::class);
+    }
+
+    // Employee → Salary Reports
+    public function salaryReports()
+    {
+        return $this->hasMany(SalaryReport::class);
     }
 }

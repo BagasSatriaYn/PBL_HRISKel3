@@ -14,8 +14,8 @@ return [
     */
 
     'defaults' => [
-        'guard' => env('AUTH_GUARD', 'web'),
-        'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
+        'guard' => 'api',
+        'passwords' => 'users',
     ],
 
     /*
@@ -40,10 +40,8 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
-
-        // --- TAMBAHKE BAGIAN IKI (Ojo lali koma neng duwure) ---
         'api' => [
-            'driver' => 'jwt',   // <--- Kuncine neng kene (jwt)
+            'driver' => 'jwt',
             'provider' => 'users',
         ],
     ],

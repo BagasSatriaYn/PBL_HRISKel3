@@ -14,7 +14,7 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 class AuthController extends Controller
 {
     // ===========================================
-    // LOGIN
+    // LOGIN (JWT AUTH)
     // ===========================================
     public function login(Request $request)
     {
@@ -36,7 +36,7 @@ class AuthController extends Controller
         $credentials = $request->only('email', 'password');
 
         try {
-            // 3. Attempt login
+            // 3. Attempt login pakai JWTAuth
             if (!$token = JWTAuth::attempt($credentials)) {
                 return response()->json([
                     'success' => false,
@@ -50,18 +50,12 @@ class AuthController extends Controller
             ], 500);
         }
 
-        // 4. Ambil user login
+        // 4. User login
         $user = Auth::user();
 
-        // 5. Join ke tabel employees
+        // 5. Cek relasi employee
         $employee = Employee::where('user_id', $user->id)->first();
 
-        $fullName = '';
-        if ($employee) {
-            $fullName = trim($employee->first_name . ' ' . $employee->last_name);
-        }
-
-        // 6. Return response
         return response()->json([
             'success' => true,
             'message' => 'Login berhasil',
@@ -69,12 +63,17 @@ class AuthController extends Controller
             'user'    => [
                 'id'        => $user->id,
                 'email'     => $user->email,
-                'is_admin'  => $user->is_admin,
-                'full_name' => $fullName,
+                'role'      => $user->is_admin,
+                'employee'  => $employee ? [
+                    'id'          => $employee->id,
+                    'first_name'  => $employee->first_name,
+                    'last_name'   => $employee->last_name,
+                    'phone'       => $employee->phone,
+                    'address'     => $employee->address,
+                ] : null
             ]
-        ], 200);
+        ]);
     }
-
 
     // ===========================================
     // RESET PASSWORD
@@ -110,5 +109,26 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Password berhasil diubah'
         ], 200);
+    }
+
+    // ===========================================
+    // LOGOUT (JWT)
+    // ===========================================
+    public function logout(Request $request)
+    {
+        try {
+            JWTAuth::invalidate(JWTAuth::getToken());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Logout berhasil'
+            ], 200);
+
+        } catch (JWTException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal logout'
+            ], 500);
+        }
     }
 }

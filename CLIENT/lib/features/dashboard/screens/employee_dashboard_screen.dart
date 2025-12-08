@@ -1,497 +1,569 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Jangan lupa import ini
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:go_router/go_router.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'sidebar_employee.dart';
-import '../models/user_model.dart';
+import '../../login/services/dashboard.service.dart';
 
-void main() {
-  runApp(const EmployeeDashboard());
-}
-
-class EmployeeDashboard extends StatelessWidget {
-  const EmployeeDashboard({super.key});
+class EmployeeDashboardScreen extends StatefulWidget {
+  const EmployeeDashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Employee Dashboard',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        scaffoldBackgroundColor: Colors.white,
-      ),
-      home: const DashboardPage(),
-    );
-  }
+  State<EmployeeDashboardScreen> createState() => _EmployeeDashboardScreenState();
 }
 
-// ====================== DASHBOARD PAGE (STATEFUL) ====================== //
+class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
+  final EmployeeService _dashboardService = EmployeeService();
+  
+  String employeeName = '-';
+  String employeeEmail = '-';
+  String employeePosition = '-';
+  String employeeDepartment = '-';
+  bool loading = true;
 
-class DashboardPage extends StatefulWidget {
-  const DashboardPage({super.key});
-
-  @override
-  State<DashboardPage> createState() => _DashboardPageState();
-}
-
-class _DashboardPageState extends State<DashboardPage> {
-  // --- VARIABEL UTAMA ---
-  String? userName; 
-  String userRole = "Karyawan"; // Default role
+  // Data dari API
+  int monthlyAttendance = 0;
+  int monthlyOvertime = 0;
+  String todayStatus = "Belum Absen";
+  String checkInTime = "-";
+  String checkOutTime = "-";
+  
+  // Data absensi mingguan
+  List<Map<String, dynamic>> attendanceData = [
+    {'label': 'Hadir', 'value': 0, 'color': Colors.green},
+    {'label': 'Telat', 'value': 0, 'color': Colors.orange},
+    {'label': 'Izin', 'value': 0, 'color': Colors.blue},
+    {'label': 'Lembur', 'value': 0, 'color': Colors.purple},
+  ];
 
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    _loadDashboardData();
   }
 
-  // Fungsi load data dari HP
-  Future<void> _loadUserData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      userName = prefs.getString('userName');
-      // Jika mau load role juga bisa: 
-      // userRole = prefs.getString('role') ?? "Karyawan";
-    });
+  Future<void> _loadDashboardData() async {
+    try {
+      // Fetch data dari API
+      // Service sudah return data['data'], bukan full response
+      final data = await _dashboardService.getDashboardSummary();
+      
+      // data sudah berisi: {employee: {...}, monthly_attendance: 0, monthly_overtime: 0}
+      final employee = data['employee'];
+      
+      setState(() {
+        // Data employee
+        employeeName = employee['name'] ?? '-';
+        employeeEmail = employee['email'] ?? '-';
+        employeePosition = employee['position'] ?? '-';
+        employeeDepartment = employee['department'] ?? '-';
+        
+        // Data attendance
+        monthlyAttendance = data['monthly_attendance'] ?? 0;
+        monthlyOvertime = data['monthly_overtime'] ?? 0;
+        
+        // Update attendance data untuk ringkasan
+        attendanceData = [
+          {'label': 'Hadir', 'value': monthlyAttendance, 'color': Colors.green},
+          {'label': 'Telat', 'value': 0, 'color': Colors.orange},
+          {'label': 'Izin', 'value': 0, 'color': Colors.blue},
+          {'label': 'Lembur', 'value': monthlyOvertime, 'color': Colors.purple},
+        ];
+        
+        loading = false;
+      });
+      
+      // Save ke SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userName', employeeName);
+      await prefs.setString('userEmail', employeeEmail);
+    } catch (e) {
+      print("❌ Error loading dashboard: $e");
+      setState(() => loading = false);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    if (mounted) context.go('/login');
   }
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).colorScheme.primary;
-
-    // Placeholder data lainnya (bisa disambung backend nanti)
-    final String employeePosition = 'Staff IT'; // Contoh isi jabatan
-    final String statusToday = 'Hadir';
-    final String masuk = '07:55';
-    final String pulang = '-';
-    final String hadirMonth = '18';
-    final String telatMonth = '1';
-    final String izinMonth = '0';
-    final String lemburMonth = '2';
-    final String gajiMonth = 'Rp 4.500.000';
-    final String gajiStatus = 'Dibayar';
-    final List<ActivityData> activityList = const [];
-
     return Scaffold(
-      drawer: const AppSidebar(),
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        backgroundColor: primary,
+        backgroundColor: const Color(0xFF4A6FA5),
         foregroundColor: Colors.white,
-        title: const Text(
-          "Dashboard Perusahaan",
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: const Text('Dashboard Perusahaan', 
+          style: TextStyle(fontWeight: FontWeight.w600)),
+        centerTitle: false,
+        elevation: 0,
+      ),
+      drawer: const AppSidebar(),
+      body: loading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: _loadDashboardData,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _headerSection(),
+                    const SizedBox(height: 16),
+                    _profileCard(),
+                    const SizedBox(height: 16),
+                    _attendanceCards(),
+                    const SizedBox(height: 16),
+                    _monthlyAttendanceSummary(),
+                  ],
+                ),
+              ),
+            ),
+    );
+  }
+
+  // Header dengan greeting
+  Widget _headerSection() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: const BoxDecoration(
+        color: Color(0xFF4A6FA5),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications),
-            onPressed: () {},
-          )
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Selamat Datang, ${employeeName.split(' ').first}!',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Ringkasan hari ini: $todayStatus',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.9),
+              fontSize: 14,
+            ),
+          ),
         ],
       ),
-
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Sapaan Header
-            Text(
-              'Selamat Datang, ${userName ?? "Karyawan"}!',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: primary,
-                  ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Ringkasan hari ini:',
-              style: TextStyle(fontSize: 15, color: Colors.grey.shade600),
-            ),
-            const SizedBox(height: 18),
-
-            // PROFILE CARD
-            Card(
-              elevation: 3,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-                side: BorderSide(color: primary.withOpacity(0.06)),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 34,
-                      backgroundColor: primary,
-                      child: const Icon(Icons.person, size: 36, color: Colors.white),
-                    ),
-                    const SizedBox(width: 14),
-
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // NAMA USER DARI SHARED PREFERENCES
-                          Text(
-                            userName ?? "Loading...",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: primary,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            employeePosition.isEmpty ? '-' : employeePosition,
-                            style: TextStyle(color: primary.withOpacity(0.75)),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Icon(Icons.circle, size: 12, color: Colors.green),
-                              const SizedBox(width: 6),
-                              Text(
-                                statusToday.isEmpty ? '-' : 'Status: $statusToday',
-                                style: const TextStyle(color: Colors.green),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    IconButton(
-                      onPressed: () {},
-                      icon: Icon(Icons.chevron_right, color: primary),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 18),
-
-            // ABSENSI & GAJI
-            Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: BlueFeatureCard(
-                    primary: primary,
-                    icon: Icons.access_time,
-                    title: 'Absensi Hari Ini',
-                    lines: [
-                      'Jam Masuk: ${masuk.isEmpty ? '-' : masuk}',
-                      'Jam Pulang: ${pulang.isEmpty ? '-' : pulang}'
-                    ],
-                    actionLabel: 'Absen',
-                    actionOnPressed: () {},
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 1,
-                  child: BlueFeatureCard(
-                    primary: primary,
-                    icon: Icons.payments,
-                    title: 'Gaji Bulan Ini',
-                    lines: [
-                      gajiMonth.isEmpty ? '-' : gajiMonth,
-                      'Status: ${gajiStatus.isEmpty ? '-' : gajiStatus}',
-                    ],
-                    actionLabel: 'Slip',
-                    actionOnPressed: () {},
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            // RINGKASAN ABSENSI BULAN
-            Card(
-              elevation: 3,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Row(
-                  children: [
-                    Icon(Icons.calendar_month, size: 36, color: primary),
-                    const SizedBox(width: 12),
-
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Ringkasan Absensi Bulan Ini',
-                              style: TextStyle(fontWeight: FontWeight.bold, color: primary)),
-                          const SizedBox(height: 8),
-
-                          Wrap(
-                            spacing: 12,
-                            runSpacing: 8,
-                            children: [
-                              SummaryPill(label: 'Hadir', value: hadirMonth),
-                              SummaryPill(label: 'Telat', value: telatMonth),
-                              SummaryPill(label: 'Izin', value: izinMonth),
-                              SummaryPill(label: 'Lembur', value: lemburMonth),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    TextButton(
-                      onPressed: () {},
-                      child: Text('Lihat', style: TextStyle(color: primary)),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            Text(
-              'Statistik Kehadiran',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: primary,
-                  ),
-            ),
-            const SizedBox(height: 8),
-
-            Container(
-              height: 140,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: primary.withOpacity(0.06)),
-              ),
-              child: const Center(
-                child: Text('Chart Placeholder', style: TextStyle(color: Colors.grey)),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            Text(
-              'Pengumuman HR',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: primary,
-                  ),
-            ),
-            const SizedBox(height: 8),
-
-            Card(
-              elevation: 3,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              child: const Padding(
-                padding: EdgeInsets.all(14),
-                child: Text('Tidak ada pengumuman.', style: TextStyle(color: Colors.grey)),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            Text(
-              'Menu Cepat',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: primary,
-                  ),
-            ),
-            const SizedBox(height: 10),
-
-            GridView.count(
-              crossAxisCount: 3,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              childAspectRatio: 0.95,
-              children: [
-                QuickActionTile(icon: Icons.access_time, label: 'Absensi', primary: primary, onTap: () {}),
-                QuickActionTile(icon: Icons.payments, label: 'Gaji', primary: primary, onTap: () {}),
-                QuickActionTile(icon: Icons.receipt_long, label: 'Slip Gaji', primary: primary, onTap: () {}),
-                QuickActionTile(icon: Icons.calendar_month, label: 'Cuti', primary: primary, onTap: () {}),
-                QuickActionTile(icon: Icons.add_alert, label: 'Lembur', primary: primary, onTap: () {}),
-                QuickActionTile(icon: Icons.person, label: 'Profil', primary: primary, onTap: () {}),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            Text(
-              'Riwayat Aktivitas Terbaru',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: primary,
-                  ),
-            ),
-            const SizedBox(height: 8),
-
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: Column(
-                children: activityList.isEmpty
-                    ? const [ActivityTile(title: '-', date: '-')]
-                    : activityList
-                        .map((a) => ActivityTile(title: a.title, date: a.date))
-                        .toList(),
-              ),
-            ),
-
-            const SizedBox(height: 30),
-          ],
-        ),
-      ),
     );
   }
-}
 
-// ---------------------------------------
-// COMPONENTS
-// ---------------------------------------
+  // Profile Card
+  Widget _profileCard() {
+    final initials = employeeName.isNotEmpty && employeeName != '-'
+        ? employeeName.split(" ").map((e) => e[0]).take(2).join().toUpperCase()
+        : "?";
 
-class BlueFeatureCard extends StatelessWidget {
-  final Color primary;
-  final IconData icon;
-  final String title;
-  final List<String> lines;
-  final String actionLabel;
-  final VoidCallback actionOnPressed;
-
-  const BlueFeatureCard({
-    super.key,
-    required this.primary,
-    required this.icon,
-    required this.title,
-    required this.lines,
-    required this.actionLabel,
-    required this.actionOnPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
     return Container(
-      height: 120,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: primary,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          children: [
-            Icon(icon, size: 40, color: Colors.white),
-            const SizedBox(width: 12),
-
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  ...lines.map((l) => Text(l, style: const TextStyle(color: Colors.white))).toList(),
-                ],
-              ),
-            ),
-
-            ElevatedButton(
-              onPressed: actionOnPressed,
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: primary),
-              child: Text(actionLabel),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class SummaryPill extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const SummaryPill({super.key, required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final primary = Theme.of(context).colorScheme.primary;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: primary.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(label, style: TextStyle(color: primary, fontWeight: FontWeight.w600)),
-          const SizedBox(width: 8),
-          Text(value.isEmpty ? '-' : value, style: const TextStyle(color: Colors.black54)),
-        ],
-      ),
-    );
-  }
-}
-
-class QuickActionTile extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color primary;
-  final VoidCallback onTap;
-
-  const QuickActionTile({
-    super.key,
-    required this.icon,
-    required this.label,
-    required this.primary,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CircleAvatar(
-            radius: 28,
-            backgroundColor: primary.withOpacity(0.12),
-            child: Icon(icon, color: primary, size: 26),
+            radius: 35,
+            backgroundColor: const Color(0xFF4A6FA5),
+            child: Text(
+              initials,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
-          const SizedBox(height: 8),
-          Text(label, style: TextStyle(color: primary, fontWeight: FontWeight.w600)),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  employeeName,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  employeeEmail,
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 14,
+                  ),
+                ),
+                if (employeePosition != '-') ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    '$employeePosition${employeeDepartment != '-' ? ' • $employeeDepartment' : ''}',
+                    style: TextStyle(
+                      color: Colors.grey[500],
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.circle, 
+                        size: 8, 
+                        color: Colors.orange[700]),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Status: $todayStatus',
+                        style: TextStyle(
+                          color: Colors.orange[700],
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
-}
 
-class ActivityTile extends StatelessWidget {
-  final String title;
-  final String date;
-
-  const ActivityTile({super.key, required this.title, required this.date});
-
-  @override
-  Widget build(BuildContext context) {
-    final primary = Theme.of(context).colorScheme.primary;
-    return ListTile(
-      leading: Icon(Icons.history, color: primary),
-      title: Text(title),
-      subtitle: Text(date),
+  // Attendance Cards (Absensi Hari Ini & Gaji)
+  Widget _attendanceCards() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: _todayAttendanceCard(),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _salaryCard(),
+          ),
+        ],
+      ),
     );
   }
-}
 
-class ActivityData {
-  final String title;
-  final String date;
+  Widget _todayAttendanceCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF4A6FA5),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF4A6FA5).withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.access_time,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const Spacer(),
+              ElevatedButton(
+                onPressed: () => context.push('/attendance'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: const Color(0xFF4A6FA5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: const Text('Absen'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Absensi Hari Ini',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Jam Masuk:',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 12,
+                    ),
+                  ),
+                  Text(
+                    checkInTime,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Jam Pulang:',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 12,
+                    ),
+                  ),
+                  Text(
+                    checkOutTime,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
-  const ActivityData({required this.title, required this.date});
+  Widget _salaryCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4A6FA5).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.account_balance_wallet,
+                  color: Color(0xFF4A6FA5),
+                  size: 24,
+                ),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: () {},
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                ),
+                child: const Text('Slip'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Gaji Bulan Ini',
+            style: TextStyle(
+              color: Colors.black87,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Status:',
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Belum Dibayar',
+            style: TextStyle(
+              color: Colors.black87,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Monthly Attendance Summary
+  Widget _monthlyAttendanceSummary() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.calendar_month, 
+                color: Color(0xFF4A6FA5)),
+              const SizedBox(width: 8),
+              const Text(
+                'Ringkasan Absensi Bulan Ini',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          ...attendanceData.map((item) => _attendanceSummaryItem(
+            label: item['label'] as String,
+            value: item['value'] as int,
+            color: item['color'] as Color,
+          )),
+        ],
+      ),
+    );
+  }
+
+  Widget _attendanceSummaryItem({
+    required String label,
+    required int value,
+    required Color color,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        children: [
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 4,
+            ),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              '$value',
+              style: TextStyle(
+                color: color,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

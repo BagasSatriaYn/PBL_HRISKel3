@@ -1,27 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../services/auth.service.dart';
-// import 'package:shared_preferences/shared_preferences.dart'; // TIDAK PERLU DI SINI LAGI
+import '../models/user_model.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
-
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // --- Logic Variables ---
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final AuthService authService = AuthService();
 
-  bool loading = false;
-  String? errorMessage;
-
-  // --- UI State Variables ---
   final _formKey = GlobalKey<FormState>();
+  bool loading = false;
   bool _isPasswordVisible = false;
+  String? errorMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -30,31 +26,30 @@ class _LoginPageState extends State<LoginPage> {
         width: double.infinity,
         height: double.infinity,
         decoration: const BoxDecoration(
-          // Background Gradient
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF6A11CB), // Ungu
-              Color(0xFF2575FC), // Biru
+              Color(0xFF3D5A80),
+              Color(0xFF2C4058),
             ],
           ),
         ),
+
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Header Icon
                 const Icon(
                   Icons.lock_person_rounded,
-                  size: 80,
+                  size: 85,
                   color: Colors.white,
                 ),
                 const SizedBox(height: 20),
+
                 const Text(
-                  "Sign in to Your HRIS Dashboard",
+                  "Login to HRIS System",
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -65,42 +60,40 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 40),
 
-                // Card Putih untuk Form
                 Container(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(28),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(22),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 15,
-                        offset: const Offset(0, 10),
+                        color: Color(0xFF4ECDC4).withOpacity(0.3),
+                        blurRadius: 20,
+                        offset: Offset(0, 10),
                       ),
                     ],
                   ),
+
                   child: Form(
                     key: _formKey,
                     child: Column(
                       children: [
-                        // Input Email
+                        // EMAIL
                         TextFormField(
                           controller: emailController,
-                          keyboardType: TextInputType.emailAddress,
                           decoration: _inputDecoration(
                             hint: "Email Address",
                             icon: Icons.email_outlined,
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Email tidak boleh kosong';
-                            }
-                            return null;
-                          },
+                          validator: (value) =>
+                              (value == null || value.isEmpty)
+                                  ? "Email tidak boleh kosong"
+                                  : null,
                         ),
+
                         const SizedBox(height: 20),
 
-                        // Input Password
+                        // PASSWORD
                         TextFormField(
                           controller: passwordController,
                           obscureText: !_isPasswordVisible,
@@ -115,27 +108,21 @@ class _LoginPageState extends State<LoginPage> {
                                     : Icons.visibility_off,
                                 color: Colors.grey,
                               ),
-                              onPressed: () {
-                                setState(() {
-                                  _isPasswordVisible = !_isPasswordVisible;
-                                });
-                              },
+                              onPressed: () =>
+                                  setState(() => _isPasswordVisible = !_isPasswordVisible),
                             ),
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Password tidak boleh kosong';
-                            }
-                            return null;
-                          },
+                          validator: (value) =>
+                              (value == null || value.isEmpty)
+                                  ? "Password tidak boleh kosong"
+                                  : null,
                         ),
 
-                        // Menampilkan Error Message (jika ada)
+                        // ERROR MESSAGE
                         if (errorMessage != null) ...[
                           const SizedBox(height: 16),
                           Container(
                             padding: const EdgeInsets.all(10),
-                            width: double.infinity,
                             decoration: BoxDecoration(
                               color: Colors.red.shade50,
                               borderRadius: BorderRadius.circular(8),
@@ -143,11 +130,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             child: Row(
                               children: [
-                                const Icon(
-                                  Icons.error_outline,
-                                  color: Colors.red,
-                                  size: 20,
-                                ),
+                                const Icon(Icons.error_outline, color: Colors.red, size: 20),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
@@ -166,83 +149,31 @@ class _LoginPageState extends State<LoginPage> {
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
-                            onPressed: () {
-                              context.go('/forgot-password');
-                            },
+                            onPressed: () => context.go('/forgot-password'),
                             child: const Text(
                               "Lupa Password?",
-                              style: TextStyle(color: Color(0xFF2575FC)),
+                              style: TextStyle(color: Color(0xFF4ECDC4)),
                             ),
                           ),
                         ),
 
                         const SizedBox(height: 30),
 
-                        // Tombol Login
+                        // LOGIN BUTTON
                         SizedBox(
                           width: double.infinity,
-                          height: 50,
+                          height: 52,
                           child: ElevatedButton(
-                            onPressed: loading
-                                ? null
-                                : () async {
-                                    // 1. Validasi Form UI dulu
-                                    if (_formKey.currentState!.validate()) {
-                                      setState(() {
-                                        loading = true;
-                                        errorMessage = null;
-                                      });
-
-                                      try {
-                                        // 2. Panggil Logic Login
-                                        // Variabel kita beri nama 'response' karena isinya Map dari JSON
-                                        final response = await authService.login(
-                                          emailController.text,
-                                          passwordController.text,
-                                        );
-
-                                        if (!mounted) return;
-
-                                        // CATATAN: Kita TIDAK PERLU simpan SharedPreferences di sini lagi
-                                        // karena sudah dilakukan di dalam 'authService.login' (lihat file sebelumnya).
-                                        // Jadi UI tetap bersih.
-
-                                        // 3. Routing Logic (GoRouter)
-                                        // Ambil role dari response backend
-                                     
-                                      final user = response['user'];
-                                      final isAdmin = user['is_admin'];
-
-                                      if (isAdmin == 1) {
-                                        context.go('/admin-dashboard');
-                                      } else {
-                                        context.go('/employee-dashboard');
-                                      }
-
-                                      } catch (e) {
-                                        // Handle Error
-                                        setState(() {
-                                          errorMessage = e.toString();
-                                        });
-                                      } finally {
-                                        if (mounted) {
-                                          setState(() {
-                                            loading = false;
-                                          });
-                                        }
-                                      }
-                                    }
-                                  },
+                            onPressed: loading ? null : _handleLogin,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF2575FC),
-                              disabledBackgroundColor: const Color(
-                                0xFF2575FC,
-                              ).withOpacity(0.6),
+                              backgroundColor: const Color(0xFF4ECDC4),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(14),
                               ),
-                              elevation: 5,
+                              elevation: 8,
+                              shadowColor:
+                                  const Color(0xFF4ECDC4).withOpacity(0.4),
                             ),
                             child: loading
                                 ? const SizedBox(
@@ -256,12 +187,12 @@ class _LoginPageState extends State<LoginPage> {
                                 : const Text(
                                     "LOGIN",
                                     style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 17,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                           ),
-                        ),
+                        )
                       ],
                     ),
                   ),
@@ -274,29 +205,59 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // --- Helper UI Style ---
+  // ==========================
+  //        HANDLE LOGIN
+  // ==========================
+  Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      loading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final User? user = await authService.login(
+        emailController.text.trim(),
+        passwordController.text.trim(),
+      );
+
+      if (!mounted) return;
+
+      if (user!.role == 1) {
+        context.go('/admin-dashboard');
+      } else {
+        context.go('/employee-dashboard');
+      }
+
+    } catch (e) {
+      setState(() => errorMessage = e.toString());
+    } finally {
+      if (mounted) setState(() => loading = false);
+    }
+  }
+
+  // ==========================
+  //     INPUT STYLE
+  // ==========================
   InputDecoration _inputDecoration({
     required String hint,
     required IconData icon,
   }) {
     return InputDecoration(
       hintText: hint,
-      prefixIcon: Icon(icon, color: Colors.grey),
+      prefixIcon: Icon(icon, color: Colors.grey[600]),
       contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+      fillColor: Colors.grey.shade100,
+      filled: true,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
       ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey.shade200),
+      focusedBorder: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+        borderSide: BorderSide(color: Color(0xFF4ECDC4), width: 2),
       ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF2575FC), width: 2),
-      ),
-      filled: true,
-      fillColor: Colors.grey.shade100,
     );
   }
 }
