@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EmployeeDashboardController;
+use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\UserController;
 use App\Models\Absensi;
 
@@ -40,8 +41,10 @@ Route::prefix('employee')->middleware('auth:api')->group(function () {
     Route::get('/overtime/history', [EmployeeDashboardController::class, 'getOvertimeHistory']);
 
     // Profile
-    Route::get('/profile', [EmployeeDashboardController::class, 'getProfile']);
-    Route::get('/user/profile', [UserController::class, 'profile']);
+    // Profile (gunakan 1 endpoint saja)
+    Route::get('/profile', [UserController::class, 'profile']);
+    Route::put('/profile', [EmployeeController::class, 'updateprofile']);
+
 
     // Absensi report berdasarkan user login
     Route::get('/absensi/report', function (Request $request) {
