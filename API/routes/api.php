@@ -6,6 +6,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EmployeeDashboardController;
 use App\Http\Controllers\UserController;
 use App\Models\Absensi;
+use App\Http\Controllers\AbsensiController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -31,6 +33,7 @@ Route::prefix('auth')->group(function () {
 | PROTECTED ROUTES (JWT auth:api)
 |--------------------------------------------------------------------------
 */
+
 Route::prefix('employee')->middleware('auth:api')->group(function () {
 
     // Dashboard & Attendance
@@ -43,24 +46,9 @@ Route::prefix('employee')->middleware('auth:api')->group(function () {
     Route::get('/profile', [EmployeeDashboardController::class, 'getProfile']);
     Route::get('/user/profile', [UserController::class, 'profile']);
 
-    // Absensi report berdasarkan user login
-    Route::get('/absensi/report', function (Request $request) {
-        $user = $request->user();
-
-        if (!$user->employee) {
-            return response()->json(['message' => 'Employee data not found'], 404);
-        }
-
-        $employeeId = $user->employee->id;
-
-        $data = Absensi::where('employee_id', $employeeId)
-            ->orderBy('tanggal', 'desc')
-            ->get();
-
-        return response()->json($data);
-    });
+    // Absensi Report
+    Route::get('/absensi/report', [AbsensiController::class, 'report']);
 });
-
 /*
 |--------------------------------------------------------------------------
 | ME endpoint (menggabungkan versi origin/main)

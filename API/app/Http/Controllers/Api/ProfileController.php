@@ -7,7 +7,7 @@ use App\Models\User;
 use App\Models\Absensi;
 use App\Models\SalaryReport;
 
-class UserController extends Controller
+class ProfileController extends Controller
 {
     // Endpoint profile user sesuai token
     public function profile(Request $request)
