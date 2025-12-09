@@ -80,7 +80,7 @@ class AppRoutes {
       ),
       GoRoute(
         path: '/employee/profile',
-        builder: (context, state) => const ProfilePage(employeeId: 1),
+        builder: (context, state) => const ProfilePage(),
       ),
       
 

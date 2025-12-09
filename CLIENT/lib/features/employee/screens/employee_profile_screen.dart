@@ -1,15 +1,22 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:go_router/go_router.dart';
+import 'package:tracer_study_test_api/features/employee/screens/employee_editProfile_screen.dart';
+
+  String getGenderLabel(String gender) {
+  if (gender == "M") return "Male";
+  if (gender == "F") return "Female";
+  return "Unknown";
+}
 
 class ProfilePage extends StatefulWidget {
-  final int employeeId;
-  const ProfilePage({super.key, required this.employeeId});
+  const ProfilePage({super.key});
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
 }
-
 
 class _ProfilePageState extends State<ProfilePage> {
   Map<String, dynamic>? employeeData;
@@ -21,37 +28,78 @@ class _ProfilePageState extends State<ProfilePage> {
     fetchEmployeeData();
   }
 
-  Future<void> fetchEmployeeData() async {
-    final url = "http://localhost:8000/api/employee/${widget.employeeId}";
+  String getGenderLabel(String gender) {
+  if (gender == "M") return "Male";
+  if (gender == "F") return "Female";
+  return "Unknown";
+}
 
-    try {
-      final response = await http.get(Uri.parse(url));
+Future<void> fetchEmployeeData() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("token");
 
-      if (response.statusCode == 200) {
-        final json = jsonDecode(response.body);
-        setState(() {
-          employeeData = json;
-          isLoading = false;
-        });
-      } else {
-        setState(() => isLoading = false);
-      }
-    } catch (e) {
+    if (token == null) {
+      print("Token tidak ditemukan");
+      setState(() => isLoading = false);
+      return;
+    }
+
+    final url = Uri.parse("http://10.0.2.2:8000/api/employee/profile");
+
+    final response = await http.get(
+  Uri.parse("http://localhost:8000/api/employee/profile"),
+  headers: {
+    "Authorization": "Bearer $token",
+    "Accept": "application/json",
+  },
+);
+
+
+    print("Status Code: ${response.statusCode}");
+    print("Response Body: ${response.body}");
+
+    final jsonBody = json.decode(response.body);
+
+    if (response.statusCode == 200 && jsonBody["data"] != null) {
+      setState(() {
+        employeeData = jsonBody["data"];
+        isLoading = false;
+      });
+    } else {
+      print("Error: ${jsonBody["message"]}");
       setState(() => isLoading = false);
     }
+  } catch (e) {
+    print("Exception: $e");
+    setState(() => isLoading = false);
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
 
+
       appBar: AppBar(
-        title: const Text("Profile"),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        foregroundColor: Colors.black,
-      ),
+        title: const Text(
+          "Profile",
+          style: TextStyle(
+            color: Colors.white,     // <- Teks putih
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+          backgroundColor: Color(0xFF446A8C),
+          elevation: 0,
+          foregroundColor: Colors.white, // <- Biar icon juga putih
+          leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/employee-dashboard'),
+        ),
+    ),
 
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -105,7 +153,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
           // position — AMBIL DARI RELASI USER
           Text(
-            employeeData!["position"]?["name"] ?? "-",
+            employeeData!["position"]?? "-",
             style: const TextStyle(
               fontSize: 15,
               color: Colors.grey,
@@ -134,7 +182,7 @@ class _ProfilePageState extends State<ProfilePage> {
               borderRadius: BorderRadius.circular(20),
             ),
             child: DefaultTextStyle.merge(
-              style: const TextStyle(fontSize: 18),
+              style: const TextStyle(fontSize: 20),
               child: Column(
                 children: [
                   buildMenuItem(Icons.person, "First Name",
@@ -145,8 +193,11 @@ class _ProfilePageState extends State<ProfilePage> {
                       employeeData!["position"]?["name"] ?? "-"),
                   buildMenuItem(Icons.apartment, "Department",
                       employeeData!["department"]?["name"] ?? "-"),
-                  buildMenuItem(Icons.male, "Gender",
-                      employeeData!["gender"] ?? "-"),
+                  buildMenuItem(
+                      Icons.male,
+                      "Gender",
+                      getGenderLabel(employeeData!["gender"]),
+                    ),
                   buildMenuItem(Icons.location_on, "Address",
                       employeeData!["address"] ?? "-"),
                 ],
@@ -155,6 +206,36 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
 
           const SizedBox(height: 25),
+
+          const SizedBox(height: 20),
+
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EmployeeEditProfileScreen(employeeData!),
+                ),
+              );
+            },
+            icon: const Icon(Icons.edit, color: Colors.white),
+            label: const Text(
+              "Edit Profile",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF446A8C),
+              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          )
+          
         ],
       ),
     );
@@ -183,7 +264,11 @@ class _ProfilePageState extends State<ProfilePage> {
           title: Text(title),
           trailing: Text(
             value,
-            style: const TextStyle(color: Colors.black87),
+            textAlign: TextAlign.right,
+            style: const TextStyle(
+              fontSize: 16,        // 🩷 teks lebih besar
+              color: Colors.black87,
+            ),
           ),
         ),
         const Divider(height: 1),
