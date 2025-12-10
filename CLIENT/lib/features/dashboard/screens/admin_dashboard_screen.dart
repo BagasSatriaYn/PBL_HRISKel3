@@ -346,15 +346,65 @@ Widget build(BuildContext context) {
   }
 
   Widget _buildManagementButtons() {
-    return Column(
-      children: [
-        _menuButton('Kelola Employee', Icons.people, '/employees'),
-        _menuButton(
-            'Persetujuan Lembur', Icons.check_circle, '/approval'),
-        _menuButton('Kelola Departemen', Icons.apartment, '/departments'),
-      ],
-    );
-  }
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      _menuGridButton(
+        title: "Karyawan",
+        icon: Icons.people,
+        route: "/employees",
+      ),
+      _menuGridButton(
+        title: "Persetujuan",
+        icon: Icons.check_circle,
+        route: "/approval",
+      ),
+      _menuGridButton(
+        title: "Departemen",
+        icon: Icons.apartment,
+        route: "/departments",
+      ),
+    ],
+  );
+}
+Widget _menuGridButton({
+  required String title,
+  required IconData icon,
+  required String route,
+}) {
+  return Expanded(
+    child: GestureDetector(
+      onTap: () => context.go(route),
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            children: [
+              Icon(
+                icon,
+                size: 36,
+                color: const Color(0xff5478ad),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 
   Widget _menuButton(String title, IconData icon, String route) {
     return Padding(
