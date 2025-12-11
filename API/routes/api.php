@@ -8,7 +8,8 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\UserController;
 use App\Models\Absensi;
 use App\Http\Controllers\AbsensiController;
-
+// Tambahkan Import SalaryController
+use App\Http\Controllers\SalaryController; 
 
 /*
 |--------------------------------------------------------------------------
@@ -24,8 +25,6 @@ use App\Http\Controllers\AbsensiController;
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
-
-    // Tambahkan logout untuk melengkapi versi origin/main
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 
@@ -35,6 +34,8 @@ Route::prefix('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 
+// Semua route di dalam group ini akan memiliki prefix '/employee'
+// Contoh: /api/employee/dashboard/summary
 Route::prefix('employee')->middleware('auth:api')->group(function () {
 
     // Dashboard & Attendance
@@ -44,17 +45,24 @@ Route::prefix('employee')->middleware('auth:api')->group(function () {
     Route::get('/overtime/history', [EmployeeDashboardController::class, 'getOvertimeHistory']);
 
     // Profile
-    // Profile (gunakan 1 endpoint saja)
-    Route::get('/profile', [UserController::class, 'profile']);
-    Route::put('/profile', [EmployeeController::class, 'updateprofile']);
-
+    Route::get('/profile', [EmployeeDashboardController::class, 'getProfile']); 
+    Route::get('/user/profile', [UserController::class, 'profile']); 
+    Route::put('/profile', [UserController::class, 'editprofile']);
 
     // Absensi Report
     Route::get('/absensi/report', [AbsensiController::class, 'report']);
+
+    // ==========================================
+    // SLIP GAJI (Route Baru)
+    // Endpoint: /api/employee/salary-slip
+    // ==========================================
+    Route::get('/salary-slip', [SalaryController::class, 'getSalarySlip']);
+    
 });
+
 /*
 |--------------------------------------------------------------------------
-| ME endpoint (menggabungkan versi origin/main)
+| ME endpoint
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth:api')->get('/me', function (Request $request) {

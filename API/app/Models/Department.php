@@ -9,7 +9,7 @@ class Department extends Model
 {
     use HasFactory;
 
-    protected $table = 'departments'; // nama tabel tetap 'departments'
+    protected $table = 'departements';
 
     protected $fillable = [
         'name',

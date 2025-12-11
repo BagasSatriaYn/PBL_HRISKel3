@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
             PositionsTableSeeder::class,
             EmployeesTableSeeder::class,     // ✔ baru employees
             SalaryReportSeeder::class,
-            AbsensiSeeder::class,
+            CheckClocksSeeder::class,
         ]);
     }
 }

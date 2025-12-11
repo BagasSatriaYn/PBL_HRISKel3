@@ -21,18 +21,24 @@ class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
   String employeeDepartment = '-';
   bool loading = true;
 
-  // Data dari API
+  // Data dari API (Updated sesuai response JSON)
   int monthlyAttendance = 0;
+  int monthlyDinas = 0;
+  int monthlyCuti = 0;
+  int monthlySakit = 0;
   int monthlyOvertime = 0;
-  String todayStatus = "Belum Absen";
+
+  // Placeholder untuk data harian (tidak ada di snippet JSON, tetap dibiarkan default)
+  String todayStatus = "Belum Absen"; 
   String checkInTime = "-";
   String checkOutTime = "-";
   
-  // Data absensi mingguan
+  // Data absensi mingguan/bulanan untuk UI
   List<Map<String, dynamic>> attendanceData = [
     {'label': 'Hadir', 'value': 0, 'color': Colors.green},
-    {'label': 'Telat', 'value': 0, 'color': Colors.orange},
-    {'label': 'Izin', 'value': 0, 'color': Colors.blue},
+    {'label': 'Dinas', 'value': 0, 'color': Colors.blue},
+    {'label': 'Cuti', 'value': 0, 'color': Colors.orange},
+    {'label': 'Sakit', 'value': 0, 'color': Colors.red},
     {'label': 'Lembur', 'value': 0, 'color': Colors.purple},
   ];
 
@@ -45,42 +51,65 @@ class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
   Future<void> _loadDashboardData() async {
     try {
       // Fetch data dari API
-      // Service sudah return data['data'], bukan full response
       final data = await _dashboardService.getDashboardSummary();
       
-      // data sudah berisi: {employee: {...}, monthly_attendance: 0, monthly_overtime: 0}
+      // Ambil object 'employee' dari response
       final employee = data['employee'];
-      
+
       setState(() {
-        // Data employee
+        // 1. Mapping Data Employee
         employeeName = employee['name'] ?? '-';
         employeeEmail = employee['email'] ?? '-';
         employeePosition = employee['position'] ?? '-';
         employeeDepartment = employee['department'] ?? '-';
-        
-        // Data attendance
-        monthlyAttendance = data['monthly_attendance'] ?? 0;
-        monthlyOvertime = data['monthly_overtime'] ?? 0;
-        
-        // Update attendance data untuk ringkasan
+
+        // 2. Mapping Data Statistik Bulanan (Convert aman ke int)
+        monthlyAttendance = (data['monthly_attendance'] as num?)?.toInt() ?? 0;
+        monthlyDinas = (data['monthly_dinas'] as num?)?.toInt() ?? 0;
+        monthlyCuti = (data['monthly_cuti'] as num?)?.toInt() ?? 0;
+        monthlySakit = (data['monthly_sakit'] as num?)?.toInt() ?? 0;
+        monthlyOvertime = (data['monthly_overtime'] as num?)?.toInt() ?? 0;
+
+        // 3. Update List UI sesuai key baru (Dinas, Cuti, Sakit)
         attendanceData = [
-          {'label': 'Hadir', 'value': monthlyAttendance, 'color': Colors.green},
-          {'label': 'Telat', 'value': 0, 'color': Colors.orange},
-          {'label': 'Izin', 'value': 0, 'color': Colors.blue},
-          {'label': 'Lembur', 'value': monthlyOvertime, 'color': Colors.purple},
+          {
+            'label': 'Hadir',
+            'value': monthlyAttendance,
+            'color': Colors.green
+          },
+          {
+            'label': 'Dinas',
+            'value': monthlyDinas,
+            'color': Colors.blue
+          },
+          {
+            'label': 'Cuti',
+            'value': monthlyCuti,
+            'color': Colors.orange
+          },
+          {
+            'label': 'Sakit',
+            'value': monthlySakit,
+            'color': Colors.redAccent
+          },
+          {
+            'label': 'Lembur',
+            'value': monthlyOvertime,
+            'color': Colors.purple
+          },
         ];
-        
+
         loading = false;
       });
-      
-      // Save ke SharedPreferences
+
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('userName', employeeName);
       await prefs.setString('userEmail', employeeEmail);
+
     } catch (e) {
       print("❌ Error loading dashboard: $e");
       setState(() => loading = false);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -93,6 +122,7 @@ class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
     }
   }
 
+  
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();

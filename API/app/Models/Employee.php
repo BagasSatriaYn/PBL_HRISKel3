@@ -45,7 +45,7 @@ class Employee extends Model
     // Employee → Department
     public function department()
     {
-        return $this->belongsTo(Department::class, 'department_id');
+        return $this->belongsTo(Department::class, 'departement_id');
     }
 
     // Employee → Absensi
