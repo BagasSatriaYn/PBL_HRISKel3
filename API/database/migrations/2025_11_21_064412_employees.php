@@ -18,11 +18,6 @@ return new class extends Migration
             $table->enum('gender', ['M', 'F'])->nullable();
             $table->string('address')->nullable();
             
-            // Bank Information
-            $table->string('bank_name')->nullable();
-            $table->string('bank_account_number')->nullable();
-            $table->string('bank_account_holder')->nullable();
-
             // Relasi departement
             $table->unsignedBigInteger('departement_id')->nullable();
             $table->foreign('departement_id')
