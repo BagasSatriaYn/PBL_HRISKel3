@@ -14,7 +14,8 @@ class EmployeeEditProfileScreen extends StatefulWidget {
 }
 
 class EmployeeEditProfileScreenState
-    extends State<EmployeeEditProfileScreen> {
+  extends State<EmployeeEditProfileScreen> {
+  // buat controller text field
   late TextEditingController firstNameController;
   late TextEditingController lastNameController;
   late TextEditingController addressController;
@@ -25,6 +26,7 @@ class EmployeeEditProfileScreenState
   void initState() {
     super.initState();
 
+    // inisialisasi controller dengan data awal 
     firstNameController =
         TextEditingController(text: widget.data["first_name"] ?? '');
     lastNameController =
@@ -34,6 +36,7 @@ class EmployeeEditProfileScreenState
   }
 
   @override
+  // bersihin resource controller
   void dispose() {
     firstNameController.dispose();
     lastNameController.dispose();
@@ -45,6 +48,7 @@ class EmployeeEditProfileScreenState
     setState(() => isSaving = true);
 
     try {
+      // ambil token dulu
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
 
@@ -58,12 +62,14 @@ class EmployeeEditProfileScreenState
 
       final url = Uri.parse('http://localhost:8000/api/employee/profile');
 
+      // menyiapkan urutan body UInya
       final body = {
         "first_name": firstNameController.text.trim(),
         "last_name": lastNameController.text.trim(),
         "address": addressController.text.trim(),
       };
 
+      // kirim method put ke jsonnya
       final response = await http.put(
         url,
         headers: {
@@ -90,7 +96,7 @@ class EmployeeEditProfileScreenState
             jsonBody["errors"]?.toString() ??
             "Gagal menyimpan perubahan";
 
-        if (!mounted) return;
+        if (!mounted) return; //mastiin widget masih ada
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(message)),
         );

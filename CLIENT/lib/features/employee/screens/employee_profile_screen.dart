@@ -1,17 +1,18 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http; // manggil api
+import 'package:shared_preferences/shared_preferences.dart'; //buat simpen dan ambil token
+import 'package:go_router/go_router.dart'; //navigasinya
 import 'package:tracer_study_test_api/features/employee/screens/employee_editProfile_screen.dart';
 
+// buat ngubah tampilan gender
   String getGenderLabel(String gender) {
   if (gender == "M") return "Male";
   if (gender == "F") return "Female";
   return "Unknown";
 }
 
-class ProfilePage extends StatefulWidget {
+class ProfilePage extends StatefulWidget { //karena ada data dinamis
   const ProfilePage({super.key});
 
   @override
@@ -23,6 +24,7 @@ class _ProfilePageState extends State<ProfilePage> {
   bool isLoading = true;
 
   @override
+  //kalo page nya udah slese loading langsung manggil API ny
   void initState() {
     super.initState();
     fetchEmployeeData();
@@ -36,6 +38,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
 Future<void> fetchEmployeeData() async {
   try {
+    //ambil token dari shared preferences
     final prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString("token");
 
@@ -46,12 +49,13 @@ Future<void> fetchEmployeeData() async {
     }
 
     final url = Uri.parse("http://127.0.0.1:8000/api/employee/profile");
-
+  
+    // manggil api nya pake bearer token waktu login
     final response = await http.get(
-  Uri.parse("http://127.0.0.1:8000/api/employee/profile"),
-  headers: {
-    "Authorization": "Bearer $token",
-    "Accept": "application/json",
+    Uri.parse("http://127.0.0.1:8000/api/employee/profile"),
+    headers: {
+      "Authorization": "Bearer $token",
+      "Accept": "application/json",
   },
 );
 
@@ -60,7 +64,8 @@ Future<void> fetchEmployeeData() async {
     print("Response Body: ${response.body}");
 
     final jsonBody = json.decode(response.body);
-
+  
+    // kalau misalnya bisaa nnti data nya di set ke employeeData
     if (response.statusCode == 200 && jsonBody["data"] != null) {
       setState(() {
         employeeData = jsonBody["data"];
@@ -101,6 +106,7 @@ Future<void> fetchEmployeeData() async {
         ),
     ),
 
+      // ngeload datanya
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : employeeData == null
@@ -120,7 +126,7 @@ Future<void> fetchEmployeeData() async {
           Center(
             child: Stack(
               children: [
-                const CircleAvatar(
+                const CircleAvatar( //foto profile dummy
                   radius: 55,
                   backgroundImage: AssetImage("assets/profile.jpg"),
                 ),
@@ -185,6 +191,7 @@ Future<void> fetchEmployeeData() async {
               style: const TextStyle(fontSize: 20),
               child: Column(
                 children: [
+                  // detail profilenya
                   buildMenuItem(Icons.person, "First Name",
                       employeeData!["first_name"] ?? "-"),
                   buildMenuItem(Icons.badge, "Last Name",
@@ -208,7 +215,8 @@ Future<void> fetchEmployeeData() async {
           const SizedBox(height: 25),
 
           const SizedBox(height: 20),
-
+          
+          // buat edit profile
           ElevatedButton.icon(
             onPressed: () {
               Navigator.push(
